@@ -7,10 +7,12 @@ import React from "react";
 import NotificationButton from './NotificationButton';
 import { AIScheduler } from './AIScheduler';
 import { UserPreferences, defaultPreferences } from '../settings/page';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
-// Use the common timezones from the TimezoneSelect component
-const timezones = commonTimezones;
+export interface TimezoneOption {
+  value: string;
+  label: string;
+  group?: string;
+}
 
 interface Participant {
   name: string;
@@ -71,14 +73,22 @@ const generateTimeSlots = (interval: number, baseDate: Date = new Date()): Date[
 };
 
 export default function WorldClock2() {
+  const userLocalTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
+  const [timezones, setTimezones] = useState<TimezoneOption[]>([
+    { value: userLocalTimezone || "UTC", label: userLocalTimezone || "UTC" }
+  ]);
+  const [currentTimes, setCurrentTimes] = useState<{ timezone: string; time: Date }[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+  const [userPreferences] = useState<UserPreferences>(defaultPreferences);
+
   // State hooks
   const [mounted, setMounted] = useState(false);
-  const [userLocalTimezone, setUserLocalTimezone] = useState("");
   const [selectedTimezones, setSelectedTimezones] = useState([
-    timezones[0],
-    timezones[1],
-    timezones[2],
-    timezones[3],
+    commonTimezones[0],
+    commonTimezones[1],
+    commonTimezones[2],
+    commonTimezones[3],
   ]);
   const [highlightedTime, setHighlightedTime] = useState<Date | null>(null);
   const [localTime, setLocalTime] = useState<Date | null>(null);
@@ -98,7 +108,6 @@ export default function WorldClock2() {
   ]);
 
   const [showAIScheduler, setShowAIScheduler] = useState(false);
-  const [selectedParticipant, setSelectedParticipant] = useState<string | null>(null);
 
   // Ref hooks
   const highlightTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -112,9 +121,6 @@ export default function WorldClock2() {
 
   // Memoized values
   const columnRefs = useMemo(() => refs.current, []);
-
-  // Add new state for user preferences
-  const [userPreferences, setUserPreferences] = useState<UserPreferences>(defaultPreferences);
 
   // Callbacks
   const scrollToTime = useCallback((targetElement: Element | null) => {
@@ -252,7 +258,6 @@ export default function WorldClock2() {
   // Initialize all client-side only data
   useEffect(() => {
     setMounted(true);
-    setUserLocalTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
     setLocalTime(roundToNearestIncrement(new Date(), 10));
     setLocalTimeSlots(generateTimeSlots(10));
     setTimeSlots(generateTimeSlots(30));
@@ -295,6 +300,32 @@ export default function WorldClock2() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
+  useEffect(() => {
+    const updateTimes = () => {
+      setCurrentTimes(timezones.map(tz => ({
+        timezone: tz.value,
+        time: toZonedTime(new Date(), tz.value)
+      })));
+    };
+
+    updateTimes();
+    const interval = setInterval(updateTimes, 1000);
+
+    return () => clearInterval(interval);
+  }, [timezones]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const newWidth = window.innerWidth;
+      setIsMobile(newWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Don't render anything until client-side initialization is complete
   if (!mounted || !localTime || !userLocalTimezone || localTimeSlots.length === 0) {

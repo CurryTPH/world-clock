@@ -229,13 +229,13 @@ export function AIScheduler({
     };
 
     setSuggestedSlots(generateSlots());
-  }, [participants, duration]);
+  }, [participants, duration, scoreTimeSlot, userPreferences]);
 
   return (
     <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
       <h3 className="text-white font-bold mb-4">AI-Suggested Meeting Times</h3>
       <div className="space-y-2">
-        {suggestedSlots.map((slot, index) => (
+        {suggestedSlots.map((slot) => (
           <div
             key={slot.startTime.toISOString()}
             className="bg-gray-700 p-3 rounded-lg hover:bg-gray-600 cursor-pointer transition-colors"
