@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { format, set } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import TimezoneSelect, { selectStyles, commonTimezones, isTimezoneDST, getDSTTransitions } from './TimezoneSelect';
+import React from "react";
 
 // Add this effect to preload the Select component stylesheet
 // in a higher scope outside the component
@@ -49,6 +50,7 @@ const generateTimeSlots = (interval: number, baseDate: Date = new Date()) => {
 };
 
 export default function WorldClock() {
+  // State hooks
   const [mounted, setMounted] = useState(false);
   const [userLocalTimezone, setUserLocalTimezone] = useState("");
   const [selectedTimezones, setSelectedTimezones] = useState([
@@ -62,15 +64,20 @@ export default function WorldClock() {
   const [localTimeSlots, setLocalTimeSlots] = useState<Date[]>([]);
   const [timeSlots, setTimeSlots] = useState<Date[]>([]);
 
+  // Ref hooks
   const highlightTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const localColumnRef = useRef<HTMLDivElement>(null);
-  const columnRefs = useMemo(() => [
-    useRef<HTMLDivElement>(null),
-    useRef<HTMLDivElement>(null),
-    useRef<HTMLDivElement>(null),
-    useRef<HTMLDivElement>(null)
-  ], []);
+  const refs = useRef([
+    React.createRef<HTMLDivElement>(),
+    React.createRef<HTMLDivElement>(),
+    React.createRef<HTMLDivElement>(),
+    React.createRef<HTMLDivElement>()
+  ]);
 
+  // Memoized values
+  const columnRefs = useMemo(() => refs.current, []);
+
+  // Callbacks
   const scrollToTime = useCallback((targetElement: Element | null) => {
     if (targetElement instanceof HTMLElement) {
       targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -218,7 +225,6 @@ export default function WorldClock() {
         {/* 🌍 Other Timezone Columns */}
         {selectedTimezones.map((tz, idx) => {
           const transitions = getDSTTransitions(tz.value);
-          const isDST = isTimezoneDST(tz.value);
           
           return (
             <div key={idx} className="bg-gray-800 p-4 rounded-lg shadow-lg w-full">
