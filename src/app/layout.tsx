@@ -6,6 +6,13 @@ import DarkModeToggle from "./components/DarkModeToggle";
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="preload"
+          href="https://cdn.jsdelivr.net/npm/react-select@5.7.0/dist/react-select.min.css"
+          as="style"
+        />
+      </head>
       <body className="bg-gray-900 text-white">
         <div className="flex h-screen">
           <Sidebar />

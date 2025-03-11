@@ -10,11 +10,55 @@ interface TimezoneOption {
   label: string;
 }
 
-// Dynamically import Select with no SSR
-const Select = dynamic<SelectProps<TimezoneOption, false>>(() => import('react-select'), {
+// Preload the Select component
+const Select = dynamic<SelectProps<TimezoneOption, false>>(() => import('react-select').then(mod => {
+  // Preload styles
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://cdn.jsdelivr.net/npm/react-select@5.7.0/dist/react-select.min.css';
+  document.head.appendChild(link);
+  return mod;
+}), {
   ssr: false,
-  loading: () => <div className="h-[38px] bg-gray-700 rounded animate-pulse"></div>
+  loading: () => (
+    <div className="h-[38px] bg-gray-700 rounded animate-pulse flex items-center px-3">
+      <div className="h-4 bg-gray-600 rounded w-24 animate-pulse"></div>
+    </div>
+  )
 });
+
+// Custom styles for Select component
+const selectStyles = {
+  control: (base: any) => ({
+    ...base,
+    background: '#374151',
+    borderColor: '#4B5563',
+    '&:hover': {
+      borderColor: '#6B7280',
+    },
+    boxShadow: 'none',
+  }),
+  menu: (base: any) => ({
+    ...base,
+    background: '#374151',
+    border: '1px solid #4B5563',
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    background: state.isFocused ? '#4B5563' : '#374151',
+    '&:hover': {
+      background: '#4B5563',
+    },
+  }),
+  singleValue: (base: any) => ({
+    ...base,
+    color: 'white',
+  }),
+  input: (base: any) => ({
+    ...base,
+    color: 'white',
+  }),
+};
 
 const timezones: TimezoneOption[] = [
   { value: "UTC", label: "UTC" },
@@ -182,7 +226,11 @@ export default function WorldClock() {
                   setSelectedTimezones(newZones);
                 }
               }}
-              className="mb-4 text-black"
+              className="mb-4"
+              styles={selectStyles}
+              isSearchable
+              placeholder="Select timezone..."
+              noOptionsMessage={() => "No timezones found"}
             />
             <div ref={columnRefs[idx]} className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {timeSlots.map((time) => {
