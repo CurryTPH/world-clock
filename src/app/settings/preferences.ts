@@ -26,6 +26,23 @@ export interface UserPreferences {
     notifyProductivityInsights: boolean;
     teamTimezonesOfInterest: string[];
   };
+  enterpriseIntegration: {
+    enableAutoSync: boolean;
+    syncInterval: number; // in minutes
+    defaultCalendar: 'outlook' | 'google' | 'apple';
+    defaultCommunication: 'slack' | 'teams' | 'email';
+    defaultVideoService: 'zoom' | 'meet' | 'teams' | 'webex';
+    notificationPreferences: {
+      calendarSync: boolean;
+      upcomingMeetings: boolean;
+      communicationMessages: boolean;
+    };
+    dataPrivacy: {
+      shareCalendarData: boolean;
+      shareCommunicationData: boolean;
+      shareAnalyticsData: boolean;
+    };
+  };
 }
 
 export const defaultPreferences: UserPreferences = {
@@ -55,5 +72,22 @@ export const defaultPreferences: UserPreferences = {
     retentionPeriod: 90,
     notifyProductivityInsights: true,
     teamTimezonesOfInterest: []
+  },
+  enterpriseIntegration: {
+    enableAutoSync: true,
+    syncInterval: 15,
+    defaultCalendar: 'outlook',
+    defaultCommunication: 'slack',
+    defaultVideoService: 'zoom',
+    notificationPreferences: {
+      calendarSync: true,
+      upcomingMeetings: true,
+      communicationMessages: true
+    },
+    dataPrivacy: {
+      shareCalendarData: true,
+      shareCommunicationData: false,
+      shareAnalyticsData: true
+    }
   }
 }; 

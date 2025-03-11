@@ -327,6 +327,258 @@ export default function SettingsPage() {
         </div>
       </div>
       
+      {/* Enterprise Integration Hub Settings */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4">Enterprise Integration Hub Settings</h2>
+        <div className="space-y-4 bg-gray-800/50 p-6 rounded-lg border border-gray-700">
+          {/* General Integration Settings */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">General Integration Settings</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2">
+                  <span>Enable Auto Sync</span>
+                  <input
+                    type="checkbox"
+                    checked={preferences.enterpriseIntegration.enableAutoSync}
+                    onChange={(e) => setPreferences({
+                      ...preferences,
+                      enterpriseIntegration: {
+                        ...preferences.enterpriseIntegration,
+                        enableAutoSync: e.target.checked
+                      }
+                    })}
+                    className="form-checkbox h-5 w-5 text-blue-600"
+                  />
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex flex-col">
+                  <span className="mb-1">Sync Interval (minutes)</span>
+                  <input
+                    type="number"
+                    min="5"
+                    max="120"
+                    value={preferences.enterpriseIntegration.syncInterval}
+                    onChange={(e) => setPreferences({
+                      ...preferences,
+                      enterpriseIntegration: {
+                        ...preferences.enterpriseIntegration,
+                        syncInterval: parseInt(e.target.value)
+                      }
+                    })}
+                    className="form-input px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Default Services */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">Default Services</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-sm">Default Calendar</label>
+                <select
+                  value={preferences.enterpriseIntegration.defaultCalendar}
+                  onChange={(e) => setPreferences({
+                    ...preferences,
+                    enterpriseIntegration: {
+                      ...preferences.enterpriseIntegration,
+                      defaultCalendar: e.target.value as 'outlook' | 'google' | 'apple'
+                    }
+                  })}
+                  className="form-select px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="outlook">Outlook</option>
+                  <option value="google">Google</option>
+                  <option value="apple">Apple</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm">Default Communication</label>
+                <select
+                  value={preferences.enterpriseIntegration.defaultCommunication}
+                  onChange={(e) => setPreferences({
+                    ...preferences,
+                    enterpriseIntegration: {
+                      ...preferences.enterpriseIntegration,
+                      defaultCommunication: e.target.value as 'slack' | 'teams' | 'email'
+                    }
+                  })}
+                  className="form-select px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="slack">Slack</option>
+                  <option value="teams">Microsoft Teams</option>
+                  <option value="email">Email</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm">Default Video Service</label>
+                <select
+                  value={preferences.enterpriseIntegration.defaultVideoService}
+                  onChange={(e) => setPreferences({
+                    ...preferences,
+                    enterpriseIntegration: {
+                      ...preferences.enterpriseIntegration,
+                      defaultVideoService: e.target.value as 'zoom' | 'meet' | 'teams' | 'webex'
+                    }
+                  })}
+                  className="form-select px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="zoom">Zoom</option>
+                  <option value="meet">Google Meet</option>
+                  <option value="teams">Microsoft Teams</option>
+                  <option value="webex">Webex</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Notification Preferences */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">Notification Preferences</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2">
+                  <span>Calendar Sync Notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={preferences.enterpriseIntegration.notificationPreferences.calendarSync}
+                    onChange={(e) => setPreferences({
+                      ...preferences,
+                      enterpriseIntegration: {
+                        ...preferences.enterpriseIntegration,
+                        notificationPreferences: {
+                          ...preferences.enterpriseIntegration.notificationPreferences,
+                          calendarSync: e.target.checked
+                        }
+                      }
+                    })}
+                    className="form-checkbox h-5 w-5 text-blue-600"
+                  />
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2">
+                  <span>Upcoming Meeting Notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={preferences.enterpriseIntegration.notificationPreferences.upcomingMeetings}
+                    onChange={(e) => setPreferences({
+                      ...preferences,
+                      enterpriseIntegration: {
+                        ...preferences.enterpriseIntegration,
+                        notificationPreferences: {
+                          ...preferences.enterpriseIntegration.notificationPreferences,
+                          upcomingMeetings: e.target.checked
+                        }
+                      }
+                    })}
+                    className="form-checkbox h-5 w-5 text-blue-600"
+                  />
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2">
+                  <span>Communication Message Notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={preferences.enterpriseIntegration.notificationPreferences.communicationMessages}
+                    onChange={(e) => setPreferences({
+                      ...preferences,
+                      enterpriseIntegration: {
+                        ...preferences.enterpriseIntegration,
+                        notificationPreferences: {
+                          ...preferences.enterpriseIntegration.notificationPreferences,
+                          communicationMessages: e.target.checked
+                        }
+                      }
+                    })}
+                    className="form-checkbox h-5 w-5 text-blue-600"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Data Privacy */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">Data Privacy Settings</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2">
+                  <span>Share Calendar Data</span>
+                  <input
+                    type="checkbox"
+                    checked={preferences.enterpriseIntegration.dataPrivacy.shareCalendarData}
+                    onChange={(e) => setPreferences({
+                      ...preferences,
+                      enterpriseIntegration: {
+                        ...preferences.enterpriseIntegration,
+                        dataPrivacy: {
+                          ...preferences.enterpriseIntegration.dataPrivacy,
+                          shareCalendarData: e.target.checked
+                        }
+                      }
+                    })}
+                    className="form-checkbox h-5 w-5 text-blue-600"
+                  />
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2">
+                  <span>Share Communication Data</span>
+                  <input
+                    type="checkbox"
+                    checked={preferences.enterpriseIntegration.dataPrivacy.shareCommunicationData}
+                    onChange={(e) => setPreferences({
+                      ...preferences,
+                      enterpriseIntegration: {
+                        ...preferences.enterpriseIntegration,
+                        dataPrivacy: {
+                          ...preferences.enterpriseIntegration.dataPrivacy,
+                          shareCommunicationData: e.target.checked
+                        }
+                      }
+                    })}
+                    className="form-checkbox h-5 w-5 text-blue-600"
+                  />
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2">
+                  <span>Share Analytics Data</span>
+                  <input
+                    type="checkbox"
+                    checked={preferences.enterpriseIntegration.dataPrivacy.shareAnalyticsData}
+                    onChange={(e) => setPreferences({
+                      ...preferences,
+                      enterpriseIntegration: {
+                        ...preferences.enterpriseIntegration,
+                        dataPrivacy: {
+                          ...preferences.enterpriseIntegration.dataPrivacy,
+                          shareAnalyticsData: e.target.checked
+                        }
+                      }
+                    })}
+                    className="form-checkbox h-5 w-5 text-blue-600"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       {/* Save Button */}
       <div className="mt-8">
         <button className="px-4 py-2 bg-primary text-white rounded-md">Save</button>
