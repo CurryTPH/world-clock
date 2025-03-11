@@ -36,6 +36,13 @@ export default function CalendarEventsPanel() {
     errorRef.current = error;
   }, [error]);
 
+  // Initialize events from state when component mounts
+  useEffect(() => {
+    if (state.calendarEvents.length > 0) {
+      setEvents(state.calendarEvents);
+    }
+  }, [state.calendarEvents]);
+
   // Fetch events function that doesn't depend on state values directly
   const fetchEvents = useCallback(async () => {
     const currentCalendar = activeCalendarRef.current;
@@ -157,7 +164,7 @@ export default function CalendarEventsPanel() {
           <button
             key={key}
             onClick={() => handleCalendarChange(key as 'outlook' | 'google' | 'apple')}
-            disabled={!calendar.connected || loading[`get-events-${key}`]}
+            disabled={!calendar.connected || loading[`fetch-events-${key}`]}
             className={`flex items-center px-3 py-1.5 rounded-full text-sm ${
               activeCalendar === key 
                 ? `${getServiceColor(key)} text-white` 

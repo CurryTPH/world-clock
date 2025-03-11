@@ -427,6 +427,26 @@ export function IntegrationsProvider({ children }: { children: React.ReactNode }
     connectVideoService('zoom');
   }, [connectCalendar, connectCommunication, connectVideoService]);
 
+  // Add dummy calendar events for demo purposes
+  useEffect(() => {
+    const addDummyEvents = async () => {
+      try {
+        // Generate dummy events for the connected calendar
+        const outlookEvents = await simulateApiDelay(generateMockCalendarEvents('outlook', 8));
+        
+        // Set the events in the state
+        dispatch({ type: 'SET_CALENDAR_EVENTS', events: outlookEvents });
+      } catch (error) {
+        console.error('Failed to generate dummy events:', error);
+      }
+    };
+    
+    // Add a small delay to ensure the calendar is connected first
+    setTimeout(() => {
+      addDummyEvents();
+    }, 1000);
+  }, [simulateApiDelay]);
+
   const contextValue = {
     state,
     loading: loadingState,
