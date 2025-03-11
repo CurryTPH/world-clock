@@ -31,7 +31,6 @@ const roundToNearestIncrement = (date: Date, increment: number) => {
 };
 
 const generateTimeSlots = (interval: number, baseDate: Date = new Date()) => {
-  const times = new Set(); // Use a Set to prevent duplicates
   const timeStrings = new Set(); // Track formatted times to prevent duplicates
   const result = [];
   
@@ -134,7 +133,7 @@ export default function WorldClock() {
     });
   }, [localTime, selectedTimezones, scrollToTime, columnRefs, userLocalTimezone]);
 
-  const handleTimeSelection = (selectedTime: Date) => {
+  const handleTimeSelection = useCallback((selectedTime: Date) => {
     setHighlightedTime(selectedTime);
 
     // Clear any existing timeout
@@ -159,14 +158,14 @@ export default function WorldClock() {
       setHighlightedTime(null);
       scrollToCurrentTime(); // Only scroll to current time after highlight is cleared
     }, 5000);
-  };
+  }, [columnRefs, selectedTimezones, scrollToTime, scrollToCurrentTime]);
 
   // Add keyboard navigation
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!highlightedTime) return;
 
     const currentTime = new Date(highlightedTime);
-    let newTime = new Date(currentTime);
+    const newTime = new Date(currentTime);
 
     switch (event.key) {
       case 'ArrowUp':
