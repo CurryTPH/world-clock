@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useState } from 'react';
 import { generateMockCalendarEvents, generateMockNotifications } from '../services/integrations';
 
 // Integration types
@@ -10,7 +10,7 @@ export type IntegrationType = 'calendar' | 'communication' | 'video' | 'hr' | 'u
 export interface Integration {
   connected: boolean;
   lastSynced?: Date;
-  data?: any;
+  data?: unknown;
 }
 
 export interface IntegrationsState {
@@ -223,7 +223,7 @@ export function IntegrationsProvider({ children }: { children: React.ReactNode }
   }, []);
 
   // Helper function to simulate API delay
-  const simulateApiDelay = useCallback(async <T extends unknown>(result: T): Promise<T> => {
+  const simulateApiDelay = useCallback(async <T>(result: T): Promise<T> => {
     await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
     return result;
   }, []);
@@ -357,7 +357,7 @@ export function IntegrationsProvider({ children }: { children: React.ReactNode }
       
       // Get connected calendars
       const connectedCalendars = Object.entries(state.calendars)
-        .filter(([_, cal]) => cal.connected)
+        .filter(([, cal]) => cal.connected)
         .map(([name]) => name);
       
       if (connectedCalendars.length === 0) {
@@ -418,7 +418,7 @@ export function IntegrationsProvider({ children }: { children: React.ReactNode }
     };
     
     generateNotifications();
-  }, [state.calendars, state.communications, state.videoServices]);
+  }, [state]);
 
   // Connect some services by default for demo purposes
   useEffect(() => {

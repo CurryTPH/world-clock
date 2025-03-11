@@ -52,7 +52,6 @@ export default function CommandCenter() {
 
   const executeCommand = (cmd: string) => {
     const trimmedCmd = cmd.trim();
-    const cmdLower = trimmedCmd.toLowerCase();
     const args = trimmedCmd.split(' ').filter(arg => arg);
     const command = args[0]?.toLowerCase();
 

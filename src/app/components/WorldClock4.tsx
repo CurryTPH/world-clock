@@ -9,12 +9,6 @@ import CommandCenter from './CommandCenter';
 import NotificationCenter from './NotificationCenter';
 import IntegrationAnalytics from './IntegrationAnalytics';
 
-interface Timezone {
-  value: string;
-  label: string;
-  offset: number;
-}
-
 export default function WorldClock4() {
   const [currentTime, setCurrentTime] = useState(new Date());
   

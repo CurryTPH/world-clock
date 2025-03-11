@@ -305,7 +305,7 @@ export default function GuidesPage() {
                   <h4 className="text-lg font-medium text-cyan-400 mb-2">Troubleshooting Tips</h4>
                   <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
                     <li>If a service shows as disconnected, try reconnecting through the Integration Controls panel</li>
-                    <li>For calendar sync issues, use the "sync" command in the Command Center</li>
+                    <li>For calendar sync issues, use the &quot;sync&quot; command in the Command Center</li>
                     <li>Clear browser cache and cookies if authentication problems persist</li>
                     <li>Check the Sync Health section in Integration Analytics for specific service issues</li>
                     <li>Ensure you&apos;ve granted all necessary permissions during the connection process</li>

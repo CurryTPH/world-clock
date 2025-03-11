@@ -332,7 +332,10 @@ export const unifiedServices = {
     await new Promise(resolve => setTimeout(resolve, 500));
   },
   
-  executeCommand: async (command: string, context: Record<string, any>): Promise<any> => {
+  executeCommand: async (
+    command: string, 
+    context: Record<string, unknown>
+  ): Promise<unknown> => {
     console.log(`Executing command "${command}" with context:`, context);
     await new Promise(resolve => setTimeout(resolve, 1500));
     
