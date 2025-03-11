@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { format, set } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
-import TimezoneSelect, { TimezoneOption, selectStyles, commonTimezones } from './TimezoneSelect';
+import TimezoneSelect, { selectStyles, commonTimezones } from './TimezoneSelect';
 
 // Add this effect to preload the Select component stylesheet
 // in a higher scope outside the component
@@ -99,7 +99,7 @@ export default function WorldClock() {
         scrollToTime(targetElement);
       }
     });
-  }, [localTime, selectedTimezones, scrollToTime]);
+  }, [localTime, selectedTimezones, scrollToTime, columnRefs]);
 
   useEffect(() => {
     if (localTime) {

@@ -22,7 +22,7 @@ if (typeof document !== 'undefined') {
 
 // Custom styles for the Select component with dark mode
 export const selectStyles = {
-  control: (base: any) => ({
+  control: (base: Record<string, unknown>) => ({
     ...base,
     background: '#374151',
     borderColor: '#4B5563',
@@ -31,23 +31,23 @@ export const selectStyles = {
     },
     boxShadow: 'none',
   }),
-  menu: (base: any) => ({
+  menu: (base: Record<string, unknown>) => ({
     ...base,
     background: '#374151',
     border: '1px solid #4B5563',
   }),
-  option: (base: any, state: any) => ({
+  option: (base: Record<string, unknown>, state: { isFocused: boolean }) => ({
     ...base,
     background: state.isFocused ? '#4B5563' : '#374151',
     '&:hover': {
       background: '#4B5563',
     },
   }),
-  singleValue: (base: any) => ({
+  singleValue: (base: Record<string, unknown>) => ({
     ...base,
     color: 'white',
   }),
-  input: (base: any) => ({
+  input: (base: Record<string, unknown>) => ({
     ...base,
     color: 'white',
   }),
