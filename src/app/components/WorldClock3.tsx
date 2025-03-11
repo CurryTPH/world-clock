@@ -360,7 +360,7 @@ export default function WorldClock3() {
       {/* Header Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Global Workforce Analytics</h1>
-        <p className="text-gray-400 mb-4">Harness the power of data to optimize your global team's productivity and collaboration.</p>
+        <p className="text-gray-400 mb-4">Harness the power of data to optimize your global team&apos;s productivity and collaboration.</p>
         <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
           <p className="text-gray-300">Transform raw timezone data into actionable insights for better team coordination and efficiency.</p>
         </div>
