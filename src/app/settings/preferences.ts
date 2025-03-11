@@ -29,7 +29,8 @@ export interface UserPreferences {
   enterpriseIntegration: {
     enableAutoSync: boolean;
     syncInterval: number; // in minutes
-    defaultCalendar: 'outlook' | 'google' | 'apple';
+    enableCalendar: boolean; // Whether calendar integration is enabled
+    defaultCalendar: 'outlook' | 'google' | 'apple' | 'none';
     defaultCommunication: 'slack' | 'teams' | 'email';
     defaultVideoService: 'zoom' | 'meet' | 'teams' | 'webex';
     notificationPreferences: {
@@ -76,6 +77,7 @@ export const defaultPreferences: UserPreferences = {
   enterpriseIntegration: {
     enableAutoSync: true,
     syncInterval: 15,
+    enableCalendar: true,
     defaultCalendar: 'outlook',
     defaultCommunication: 'slack',
     defaultVideoService: 'zoom',

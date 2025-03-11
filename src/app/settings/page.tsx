@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UserPreferences, defaultPreferences } from './preferences';
 
 export default function SettingsPage() {
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
+
+  // Load preferences from localStorage when component mounts
+  useEffect(() => {
+    try {
+      const savedPreferences = localStorage.getItem('userPreferences');
+      if (savedPreferences) {
+        setPreferences(JSON.parse(savedPreferences));
+      }
+    } catch (error) {
+      console.error('Failed to load preferences from localStorage:', error);
+    }
+  }, []);
 
   return (
     <div className="max-w-3xl mx-auto py-4 px-4">
@@ -380,6 +392,25 @@ export default function SettingsPage() {
             <h3 className="text-lg font-medium mb-3">Default Services</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2">
+                  <span>Enable Calendar Integration</span>
+                  <input
+                    type="checkbox"
+                    checked={preferences.enterpriseIntegration.enableCalendar}
+                    onChange={(e) => setPreferences({
+                      ...preferences,
+                      enterpriseIntegration: {
+                        ...preferences.enterpriseIntegration,
+                        enableCalendar: e.target.checked,
+                        defaultCalendar: e.target.checked ? preferences.enterpriseIntegration.defaultCalendar : 'none'
+                      }
+                    })}
+                    className="form-checkbox h-5 w-5 text-blue-600"
+                  />
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between">
                 <label className="text-sm">Default Calendar</label>
                 <select
                   value={preferences.enterpriseIntegration.defaultCalendar}
@@ -387,14 +418,16 @@ export default function SettingsPage() {
                     ...preferences,
                     enterpriseIntegration: {
                       ...preferences.enterpriseIntegration,
-                      defaultCalendar: e.target.value as 'outlook' | 'google' | 'apple'
+                      defaultCalendar: e.target.value as 'outlook' | 'google' | 'apple' | 'none'
                     }
                   })}
-                  className="form-select px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={!preferences.enterpriseIntegration.enableCalendar}
+                  className={`form-select px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!preferences.enterpriseIntegration.enableCalendar ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <option value="outlook">Outlook</option>
                   <option value="google">Google</option>
                   <option value="apple">Apple</option>
+                  <option value="none">None</option>
                 </select>
               </div>
 
@@ -444,7 +477,7 @@ export default function SettingsPage() {
             <h3 className="text-lg font-medium mb-3">Notification Preferences</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="flex items-center space-x-2">
+                <label className={`flex items-center space-x-2 ${!preferences.enterpriseIntegration.enableCalendar ? 'opacity-50' : ''}`}>
                   <span>Calendar Sync Notifications</span>
                   <input
                     type="checkbox"
@@ -459,13 +492,14 @@ export default function SettingsPage() {
                         }
                       }
                     })}
+                    disabled={!preferences.enterpriseIntegration.enableCalendar}
                     className="form-checkbox h-5 w-5 text-blue-600"
                   />
                 </label>
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="flex items-center space-x-2">
+                <label className={`flex items-center space-x-2 ${!preferences.enterpriseIntegration.enableCalendar ? 'opacity-50' : ''}`}>
                   <span>Upcoming Meeting Notifications</span>
                   <input
                     type="checkbox"
@@ -480,6 +514,7 @@ export default function SettingsPage() {
                         }
                       }
                     })}
+                    disabled={!preferences.enterpriseIntegration.enableCalendar}
                     className="form-checkbox h-5 w-5 text-blue-600"
                   />
                 </label>
@@ -513,7 +548,7 @@ export default function SettingsPage() {
             <h3 className="text-lg font-medium mb-3">Data Privacy Settings</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="flex items-center space-x-2">
+                <label className={`flex items-center space-x-2 ${!preferences.enterpriseIntegration.enableCalendar ? 'opacity-50' : ''}`}>
                   <span>Share Calendar Data</span>
                   <input
                     type="checkbox"
@@ -528,6 +563,7 @@ export default function SettingsPage() {
                         }
                       }
                     })}
+                    disabled={!preferences.enterpriseIntegration.enableCalendar}
                     className="form-checkbox h-5 w-5 text-blue-600"
                   />
                 </label>
@@ -581,7 +617,18 @@ export default function SettingsPage() {
       
       {/* Save Button */}
       <div className="mt-8">
-        <button className="px-4 py-2 bg-primary text-white rounded-md">Save</button>
+        <button 
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-700 transition-colors"
+          onClick={() => {
+            // Save preferences to localStorage
+            localStorage.setItem('userPreferences', JSON.stringify(preferences));
+            
+            // Show a success message
+            alert('Settings saved successfully!');
+          }}
+        >
+          Save
+        </button>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef, memo, useMemo } from '
 import { format } from 'date-fns';
 import { useIntegrations } from '../contexts/IntegrationsContext';
 import { CalendarEvent } from '../services/integrations';
+import { UserPreferences, defaultPreferences } from '../settings/preferences';
 
 // Memoize the event item to prevent unnecessary re-renders
 const EventItem = memo(({ event, activeCalendar, getServiceColor }: { 
@@ -105,6 +106,21 @@ const CalendarEventsPanel = memo(function CalendarEventsPanel() {
   const [activeCalendar, setActiveCalendar] = useState<'outlook' | 'google' | 'apple'>('outlook');
   const [error, setError] = useState<string | null>(null);
   
+  // Get user preferences from localStorage if available
+  const [userPreferences, setUserPreferences] = useState<UserPreferences>(defaultPreferences);
+  
+  // Load user preferences from localStorage
+  useEffect(() => {
+    try {
+      const savedPreferences = localStorage.getItem('userPreferences');
+      if (savedPreferences) {
+        setUserPreferences(JSON.parse(savedPreferences));
+      }
+    } catch (error) {
+      console.error('Failed to load user preferences:', error);
+    }
+  }, []);
+  
   // Use refs to track component state without causing re-renders
   const isMounted = useRef(true);
   
@@ -112,12 +128,17 @@ const CalendarEventsPanel = memo(function CalendarEventsPanel() {
   const getServiceColor = useServiceColors();
   const getServiceIcon = useServiceIcons();
 
+  // Check if calendar is enabled in user preferences
+  const isCalendarEnabled = useMemo(() => {
+    return userPreferences.enterpriseIntegration.enableCalendar;
+  }, [userPreferences.enterpriseIntegration.enableCalendar]);
+
   // Initialize events from state when component mounts or when state.calendarEvents changes
   useEffect(() => {
-    if (state.calendarEvents.length > 0) {
+    if (state.calendarEvents.length > 0 && isCalendarEnabled) {
       setEvents(state.calendarEvents);
     }
-  }, [state.calendarEvents]);
+  }, [state.calendarEvents, isCalendarEnabled]);
 
   // Update loading state when state.loading changes
   useEffect(() => {
@@ -126,7 +147,7 @@ const CalendarEventsPanel = memo(function CalendarEventsPanel() {
 
   // Fetch events function
   const fetchEvents = useCallback(async () => {
-    if (isLoading) return;
+    if (isLoading || !isCalendarEnabled) return;
     
     if (state.calendars[activeCalendar]?.connected) {
       setIsLoading(true);
@@ -149,7 +170,7 @@ const CalendarEventsPanel = memo(function CalendarEventsPanel() {
       // Clear events if calendar is not connected
       setEvents([]);
     }
-  }, [fetchCalendarEvents, state.calendars, activeCalendar, isLoading]);
+  }, [fetchCalendarEvents, state.calendars, activeCalendar, isLoading, isCalendarEnabled]);
 
   // Setup effect for initial fetch and cleanup
   useEffect(() => {
@@ -157,13 +178,18 @@ const CalendarEventsPanel = memo(function CalendarEventsPanel() {
     isMounted.current = true;
     
     // Fetch events when the component mounts or when activeCalendar changes
-    fetchEvents();
+    if (isCalendarEnabled) {
+      fetchEvents();
+    } else {
+      // Clear events if calendar is disabled
+      setEvents([]);
+    }
     
     // Cleanup function to prevent state updates after unmount
     return () => {
       isMounted.current = false;
     };
-  }, [activeCalendar, fetchEvents]);
+  }, [activeCalendar, fetchEvents, isCalendarEnabled]);
 
   // Handle calendar selection
   const handleCalendarChange = useCallback((calendarType: 'outlook' | 'google' | 'apple') => {
@@ -210,45 +236,60 @@ const CalendarEventsPanel = memo(function CalendarEventsPanel() {
     <div className="bg-gray-800 rounded-lg shadow-lg p-5 border border-gray-700 relative z-0">
       <h3 className="text-xl font-semibold mb-4">Calendar Events</h3>
       
-      {/* Calendar selection tabs */}
-      <div className="flex mb-4 space-x-2">
-        {calendarButtons}
-      </div>
-      
-      {/* Fixed height container to prevent layout shifts */}
-      <div className="h-[320px] relative">
-        {isLoading ? (
-          <div className="absolute inset-0 flex justify-center items-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+      {isCalendarEnabled ? (
+        <>
+          {/* Calendar selection tabs */}
+          <div className="flex mb-4 space-x-2">
+            {calendarButtons}
           </div>
-        ) : error ? (
-          <div className="absolute inset-0 flex justify-center items-center">
-            <div className="bg-red-500 bg-opacity-20 text-red-300 p-4 rounded-lg text-center">
-              <p>{error}</p>
-              <button 
-                onClick={handleRetry} 
-                className="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md text-sm"
-              >
-                Retry
-              </button>
-            </div>
+          
+          {/* Fixed height container to prevent layout shifts */}
+          <div className="h-[320px] relative">
+            {isLoading ? (
+              <div className="absolute inset-0 flex justify-center items-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : error ? (
+              <div className="absolute inset-0 flex justify-center items-center">
+                <div className="bg-red-500 bg-opacity-20 text-red-300 p-4 rounded-lg text-center">
+                  <p>{error}</p>
+                  <button 
+                    onClick={handleRetry} 
+                    className="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md text-sm"
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            ) : events.length > 0 ? (
+              <div className="h-full overflow-y-auto pr-2 space-y-3">
+                {eventList}
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex justify-center items-center">
+                <div className="bg-gray-700 rounded-lg p-4 text-center text-gray-400 w-full">
+                  {state.calendars[activeCalendar]?.connected ? (
+                    <p>No events found in your calendar</p>
+                  ) : (
+                    <p>Connect your {activeCalendar} calendar to see events</p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        ) : events.length > 0 ? (
-          <div className="h-full overflow-y-auto pr-2 space-y-3">
-            {eventList}
+        </>
+      ) : (
+        <div className="h-[320px] flex items-center justify-center">
+          <div className="bg-gray-700 rounded-lg p-6 text-center text-gray-300 max-w-md">
+            <svg className="w-16 h-16 mx-auto mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h4 className="text-xl font-semibold mb-2">Calendar Integration Disabled</h4>
+            <p className="mb-4">Calendar integration is currently disabled in your settings.</p>
+            <p className="text-sm text-gray-400">You can enable it in the Enterprise Integration Hub settings.</p>
           </div>
-        ) : (
-          <div className="absolute inset-0 flex justify-center items-center">
-            <div className="bg-gray-700 rounded-lg p-4 text-center text-gray-400 w-full">
-              {state.calendars[activeCalendar]?.connected ? (
-                <p>No events found in your calendar</p>
-              ) : (
-                <p>Connect your {activeCalendar} calendar to see events</p>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 });
