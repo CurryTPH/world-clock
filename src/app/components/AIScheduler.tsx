@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format, addHours, isWithinInterval, set } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-import { UserPreferences } from '../settings/page';
+import { UserPreferences } from '../settings/preferences';
 
 interface Participant {
   name: string;

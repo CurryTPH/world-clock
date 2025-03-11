@@ -6,7 +6,7 @@ import TimezoneSelect, { selectStyles, commonTimezones, isTimezoneDST, getDSTTra
 import React from "react";
 import NotificationButton from './NotificationButton';
 import { AIScheduler } from './AIScheduler';
-import { UserPreferences, defaultPreferences } from '../settings/page';
+import { UserPreferences, defaultPreferences } from '../settings/preferences';
 
 export interface TimezoneOption {
   value: string;
