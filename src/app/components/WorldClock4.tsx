@@ -519,7 +519,7 @@ export default function WorldClock4() {
               <h4 className="font-medium text-md mb-2">Scheduling Assistant</h4>
               <p className="text-sm text-gray-400">Type <span className="bg-gray-700 font-mono text-xs px-1 py-0.5 rounded">/schedule</span> in any integrated app to start scheduling.</p>
               <div className="mt-3 bg-gray-700 p-2 rounded text-sm">
-                <span className="text-green-400">@TeamBot:</span> I'll find the best time for "Product Review" with @Sarah and @Mike
+                <span className="text-green-400">@TeamBot:</span> I&apos;ll find the best time for &quot;Product Review&quot; with @Sarah and @Mike
               </div>
             </div>
             
