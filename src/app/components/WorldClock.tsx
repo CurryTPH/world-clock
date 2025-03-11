@@ -28,11 +28,22 @@ const roundToNearestIncrement = (date: Date, increment: number) => {
     : set(date, { minutes: minutes + (increment - remainder), seconds: 0 });
 };
 
-const generateTimeSlots = (interval: number) => {
+const generateTimeSlots = (interval: number, baseDate: Date = new Date()) => {
   const times = [];
-  for (let i = 0; i < 24 * 60; i += interval) {
-    const time = set(new Date(), { hours: Math.floor(i / 60), minutes: i % 60, seconds: 0, milliseconds: 0 });
-    times.push(time);
+  // Generate slots for previous, current, and next day
+  for (let dayOffset = -1; dayOffset <= 1; dayOffset++) {
+    const date = new Date(baseDate);
+    date.setDate(date.getDate() + dayOffset);
+    
+    for (let i = 0; i < 24 * 60; i += interval) {
+      const time = set(new Date(date), {
+        hours: Math.floor(i / 60),
+        minutes: i % 60,
+        seconds: 0,
+        milliseconds: 0
+      });
+      times.push(time);
+    }
   }
   return times;
 };
@@ -51,6 +62,7 @@ export default function WorldClock() {
   const [localTimeSlots, setLocalTimeSlots] = useState<Date[]>([]);
   const [timeSlots, setTimeSlots] = useState<Date[]>([]);
 
+  const highlightTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const localColumnRef = useRef<HTMLDivElement>(null);
   const columnRefs = [
     useRef<HTMLDivElement>(null),
@@ -58,15 +70,6 @@ export default function WorldClock() {
     useRef<HTMLDivElement>(null),
     useRef<HTMLDivElement>(null),
   ];
-
-  // Initialize all client-side only data
-  useEffect(() => {
-    setMounted(true);
-    setUserLocalTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-    setLocalTime(roundToNearestIncrement(new Date(), 10));
-    setLocalTimeSlots(generateTimeSlots(10));
-    setTimeSlots(generateTimeSlots(30));
-  }, []);
 
   const scrollToTime = useCallback((targetElement: Element | null) => {
     if (targetElement instanceof HTMLElement) {
@@ -78,7 +81,7 @@ export default function WorldClock() {
     if (!localTime) return;
     
     const roundedLocalTimeForLocal = roundToNearestIncrement(localTime, 10);
-    const formattedLocalTime = format(roundedLocalTimeForLocal, "hh:mm a");
+    const formattedLocalTime = format(toZonedTime(roundedLocalTimeForLocal, userLocalTimezone), "MMM d, hh:mm a");
     
     const roundedLocalTimeForZones = roundToNearestIncrement(localTime, 30);
 
@@ -92,57 +95,82 @@ export default function WorldClock() {
       if (ref.current) {
         const timezone = selectedTimezones[idx].value;
         const convertedTime = toZonedTime(roundedLocalTimeForZones, timezone);
-        const formattedConvertedTime = format(convertedTime, "hh:mm a");
+        const formattedConvertedTime = format(convertedTime, "MMM d, hh:mm a");
 
         const timeElements = Array.from(ref.current.children);
         const targetElement = timeElements.find((child) => child.textContent?.trim() === formattedConvertedTime) || null;
         scrollToTime(targetElement);
       }
     });
-  }, [localTime, selectedTimezones, scrollToTime, columnRefs]);
+  }, [localTime, selectedTimezones, scrollToTime, columnRefs, userLocalTimezone]);
+
+  const handleTimeSelection = (selectedTime: Date) => {
+    setHighlightedTime(selectedTime);
+
+    // Clear any existing timeout
+    if (highlightTimeoutRef.current) {
+      clearTimeout(highlightTimeoutRef.current);
+    }
+
+    columnRefs.forEach((ref, idx) => {
+      if (ref.current) {
+        const timezone = selectedTimezones[idx].value;
+        const convertedTime = toZonedTime(selectedTime, timezone);
+        const formattedConvertedTime = format(convertedTime, "MMM d, hh:mm a");
+
+        const timeElements = Array.from(ref.current.children);
+        const targetElement = timeElements.find((child) => child.textContent?.trim() === formattedConvertedTime) || null;
+        scrollToTime(targetElement);
+      }
+    });
+
+    // Store the timeout ID in the ref
+    highlightTimeoutRef.current = setTimeout(() => {
+      setHighlightedTime(null);
+      scrollToCurrentTime(); // Only scroll to current time after highlight is cleared
+    }, 5000);
+  };
+
+  // Initialize all client-side only data
+  useEffect(() => {
+    setMounted(true);
+    setUserLocalTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    setLocalTime(roundToNearestIncrement(new Date(), 10));
+    setLocalTimeSlots(generateTimeSlots(10));
+    setTimeSlots(generateTimeSlots(30));
+
+    // Cleanup function to clear any existing timeout
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
-    if (localTime) {
+    if (localTime && !highlightedTime) {
       const interval = setInterval(() => {
         setLocalTime(roundToNearestIncrement(new Date(), 10));
       }, 60000);
       return () => clearInterval(interval);
     }
-  }, [localTime]);
+  }, [localTime, highlightedTime]);
 
+  // Only scroll to current time if there's no highlighted time
   useEffect(() => {
-    if (highlightedTime === null && localTime) {
+    if (!highlightedTime && localTime) {
       setTimeout(() => {
         scrollToCurrentTime();
       }, 50);
     }
   }, [highlightedTime, scrollToCurrentTime, localTime]);
 
+  // Only scroll on timezone changes if there's no highlighted time
   useEffect(() => {
-    if (localTime) {
+    if (!highlightedTime && localTime) {
       scrollToCurrentTime();
     }
-  }, [selectedTimezones, scrollToCurrentTime, localTime]);
-
-  const handleTimeSelection = (selectedTime: Date) => {
-    setHighlightedTime(selectedTime);
-
-    columnRefs.forEach((ref, idx) => {
-      if (ref.current) {
-        const timezone = selectedTimezones[idx].value;
-        const convertedTime = toZonedTime(selectedTime, timezone);
-        const formattedConvertedTime = format(convertedTime, "hh:mm a");
-
-        const timeElements = Array.from(ref.current.children);
-        const targetElement = timeElements.find((child) => child.textContent?.trim() === formattedConvertedTime) || null;
-        scrollToTime(targetElement);
-      }
-    });
-
-    setTimeout(() => {
-      setHighlightedTime(null);
-    }, 5000);
-  };
+  }, [selectedTimezones, scrollToCurrentTime, localTime, highlightedTime]);
 
   // Don't render anything until client-side initialization is complete
   if (!mounted || !localTime || !userLocalTimezone || localTimeSlots.length === 0) {
@@ -157,9 +185,19 @@ export default function WorldClock() {
           <h3 className="text-center text-white font-bold mb-4">Local Time ({userLocalTimezone})</h3>
           <div ref={localColumnRef} className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {localTimeSlots.map((time) => {
-              const formattedTime = format(toZonedTime(time, userLocalTimezone), "hh:mm a");
-              const isNow = localTime && format(time, "hh:mm a") === format(localTime, "hh:mm a");
-              return <div key={formattedTime} className={`p-2 text-center ${isNow ? "bg-blue-500 text-white font-bold" : ""}`}>{formattedTime}</div>;
+              const zonedTime = toZonedTime(time, userLocalTimezone);
+              const formattedTime = format(zonedTime, "MMM d, hh:mm a");
+              const isNow = localTime && 
+                format(zonedTime, "MMM d, hh:mm a") === format(toZonedTime(localTime, userLocalTimezone), "MMM d, hh:mm a");
+              return (
+                <div 
+                  key={formattedTime} 
+                  className={`p-2 text-center ${isNow ? "bg-blue-500 text-white font-bold" : ""}`}
+                  onClick={() => handleTimeSelection(time)}
+                >
+                  {formattedTime}
+                </div>
+              );
             })}
           </div>
         </div>
@@ -185,15 +223,23 @@ export default function WorldClock() {
             />
             <div ref={columnRefs[idx]} className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {timeSlots.map((time) => {
-                const formattedTime = format(toZonedTime(time, tz.value), "hh:mm a");
-                const isHighlighted = highlightedTime && format(time, "hh:mm a") === format(highlightedTime, "hh:mm a");
-                const isLocalTime = localTime && format(time, "hh:mm a") === format(roundToNearestIncrement(localTime, 30), "hh:mm a");
+                const zonedTime = toZonedTime(time, tz.value);
+                const formattedTime = format(zonedTime, "MMM d, hh:mm a");
+                const isHighlighted = highlightedTime && 
+                  format(toZonedTime(time, tz.value), "MMM d, hh:mm a") === 
+                  format(toZonedTime(highlightedTime, tz.value), "MMM d, hh:mm a");
+                const isLocalTime = localTime && 
+                  format(zonedTime, "MMM d, hh:mm a") === 
+                  format(toZonedTime(roundToNearestIncrement(localTime, 30), tz.value), "MMM d, hh:mm a");
 
                 return (
-                  <div key={formattedTime} className={`p-2 text-center cursor-pointer ${
+                  <div 
+                    key={formattedTime} 
+                    className={`p-2 text-center cursor-pointer ${
                       isHighlighted ? "bg-pink-500 text-white font-bold highlighted" : ""
                     } ${isLocalTime ? "bg-blue-500 text-white font-bold" : ""}`} 
-                    onClick={() => handleTimeSelection(time)}>
+                    onClick={() => handleTimeSelection(time)}
+                  >
                     {formattedTime}
                   </div>
                 );
