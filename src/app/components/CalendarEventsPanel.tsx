@@ -6,7 +6,7 @@ import { useIntegrations } from '../contexts/IntegrationsContext';
 import { CalendarEvent } from '../services/integrations';
 
 export default function CalendarEventsPanel() {
-  const { state, getCalendarEvents, loading } = useIntegrations();
+  const { state, fetchCalendarEvents, loading } = useIntegrations();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeCalendar, setActiveCalendar] = useState<'outlook' | 'google' | 'apple'>('outlook');
@@ -55,11 +55,11 @@ export default function CalendarEventsPanel() {
       }
       
       try {
-        const calendarEvents = await getCalendarEvents(currentCalendar);
+        await fetchCalendarEvents(currentCalendar);
         
         // Only update state if component is still mounted
         if (isMounted.current) {
-          setEvents(calendarEvents);
+          setEvents(state.calendarEvents);
         }
       } catch (err) {
         console.error(`Error fetching ${currentCalendar} events:`, err);
@@ -81,7 +81,7 @@ export default function CalendarEventsPanel() {
         setEvents([]);
       }
     }
-  }, [getCalendarEvents, state.calendars]);
+  }, [fetchCalendarEvents, state.calendars, state.calendarEvents]);
 
   // Setup effect for initial fetch and cleanup
   useEffect(() => {
