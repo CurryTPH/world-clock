@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { format, set } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { format, set, addHours, differenceInHours, parseISO } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 import TimezoneSelect, { selectStyles, commonTimezones, isTimezoneDST, getDSTTransitions } from './TimezoneSelect';
-import React from "react";
 import NotificationButton from './NotificationButton';
 import { AIScheduler } from './AIScheduler';
 import { UserPreferences, defaultPreferences } from '../settings/preferences';
+import { useIntegrations, IntegrationsProvider } from '../contexts/IntegrationsContext';
+import CalendarEventsPanel from './CalendarEventsPanel';
+import IntegrationAnalytics from './IntegrationAnalytics';
+import CommandCenter from './CommandCenter';
+import NotificationCenter from './NotificationCenter';
 
 interface ProductivityData {
   hour: number;
@@ -83,7 +87,46 @@ const generateTimeSlots = (interval: number, baseDate: Date = new Date()): Date[
   return result.sort((a, b) => a.getTime() - b.getTime());
 };
 
-export default function WorldClock4() {
+// Helper function to render icons for different services
+const renderServiceIcon = (service: string) => {
+  switch (service) {
+    // Video services
+    case 'zoom':
+      return <span className="text-blue-400">Z</span>;
+    case 'meet':
+      return <span className="text-green-400">M</span>;
+    case 'teams':
+      return <span className="text-purple-400">T</span>;
+    case 'webex':
+      return <span className="text-yellow-400">W</span>;
+    
+    // Calendar services
+    case 'outlook':
+      return <span className="text-blue-400">O</span>;
+    case 'google':
+      return <span className="text-red-400">G</span>;
+    case 'apple':
+      return <span className="text-gray-400">A</span>;
+    
+    // Communication platforms
+    case 'slack':
+      return <span className="text-green-400">S</span>;
+    case 'email':
+      return <span className="text-blue-400">E</span>;
+    
+    // HR systems
+    case 'holidays':
+      return <span className="text-red-400">H</span>;
+    case 'pto':
+      return <span className="text-green-400">P</span>;
+    
+    default:
+      return <span>•</span>;
+  }
+};
+
+// Main component content
+function WorldClockContent() {
   const userLocalTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   
   const timezones = commonTimezones;
@@ -93,6 +136,26 @@ export default function WorldClock4() {
   const [timeSlots, setTimeSlots] = useState<Date[]>([]);
   const [showAIScheduler, setShowAIScheduler] = useState(false);
   const [userPreferences] = useState<UserPreferences>(defaultPreferences);
+
+  // Integrations state and functions
+  const { 
+    state: integrationsState, 
+    connectVideoService,
+    connectCalendar: handleToggleCalendar,
+    disconnectCalendar,
+    connectCommunication,
+    disconnectCommunication,
+    connectHRSystem: handleToggleHRSystem,
+    disconnectHRSystem,
+    executeCommand,
+    loading
+  } = useIntegrations();
+  
+  // New state for integration interactions
+  const [selectedVideoService, setSelectedVideoService] = useState<'zoom' | 'meet' | 'teams' | 'webex'>('zoom');
+  const [meetingLink, setMeetingLink] = useState<string>('');
+  const [commandInput, setCommandInput] = useState<string>('');
+  const [commandOutput, setCommandOutput] = useState<string>('');
 
   const [analyticsData] = useState<AnalyticsData>({
     productivity: Array.from({ length: 24 }, (_, hour) => ({
@@ -215,11 +278,22 @@ export default function WorldClock4() {
   }, [columnRefs, selectedTimezones, scrollToTime, scrollToCurrentTime]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    // Skip handling if the event target is an input, select, or textarea
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLSelectElement ||
+      event.target instanceof HTMLTextAreaElement ||
+      event.target instanceof HTMLButtonElement ||
+      (event.target instanceof HTMLElement && event.target.isContentEditable)
+    ) {
+      return;
+    }
+    
     if (!highlightedTime) return;
-
+    
     const currentTime = new Date(highlightedTime);
-    const newTime = new Date(currentTime);
-
+    const newTime = new Date(highlightedTime);
+    
     switch (event.key) {
       case 'ArrowUp':
         event.preventDefault();
@@ -229,6 +303,16 @@ export default function WorldClock4() {
       case 'ArrowDown':
         event.preventDefault();
         newTime.setMinutes(currentTime.getMinutes() + 30);
+        handleTimeSelection(newTime);
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        newTime.setHours(currentTime.getHours() - 1);
+        handleTimeSelection(newTime);
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        newTime.setHours(currentTime.getHours() + 1);
         handleTimeSelection(newTime);
         break;
       case 'PageUp':
@@ -323,427 +407,395 @@ export default function WorldClock4() {
 
     return () => clearInterval(interval);
   }, []);
+  
+  // Handler for video service selection
+  const handleVideoServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const service = e.target.value as 'zoom' | 'meet' | 'teams' | 'webex';
+    setSelectedVideoService(service);
+  };
+  
+  // Handler for generating a meeting link
+  const handleGenerateMeetingLink = async () => {
+    try {
+      // Since we don't have generateMeetingLink anymore, we'll just create a mock link
+      const mockLink = `https://meet.example.com/${Math.random().toString(36).substring(2, 8)}`;
+      setMeetingLink(mockLink);
+      
+      // Connect the video service if it's not already connected
+      if (!integrationsState.videoServices[selectedVideoService]?.connected) {
+        await connectVideoService(selectedVideoService as any);
+      }
+    } catch (error) {
+      console.error('Failed to generate meeting link:', error);
+    }
+  };
+  
+  // Format last synced time
+  const formatLastSynced = (date?: Date) => {
+    if (!date) return 'Never';
+    
+    const now = new Date();
+    const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffMinutes < 1) return 'Just now';
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    
+    return format(date, 'MMM d');
+  };
+
+  // Handle command submission
+  const handleExecuteCommand = async () => {
+    if (!commandInput) return;
+    
+    try {
+      const result = await executeCommand(commandInput);
+      
+      if (result) {
+        setCommandOutput(`Success! ${result}`);
+      } else {
+        setCommandOutput(`Error: Command failed`);
+      }
+    } catch (error) {
+      console.error('Failed to execute command:', error);
+      setCommandOutput('Error executing command');
+    }
+  };
 
   if (!mounted || !localTime || !userLocalTimezone || localTimeSlots.length === 0) {
     return <div className="flex justify-center items-center h-64">Loading...</div>;
   }
 
   return (
-    <div className="relative w-full p-8">
-      {/* Top Bar with Notification */}
-      <div className="fixed top-4 right-4 z-50 flex items-center space-x-4">
-        <NotificationButton />
-      </div>
-
-      {/* Header Section */}
-      <div className="mb-8">
+    <div className="container mx-auto px-4 py-8 relative z-0">
+      <header className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">World Clock 4</h1>
-        <p className="text-gray-400 mb-4">Harness the power of data to optimize your global team&apos;s productivity and collaboration.</p>
-        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-          <p className="text-gray-300">Transform raw timezone data into actionable insights for better team coordination and efficiency.</p>
-        </div>
-      </div>
+        <p className="text-gray-400 max-w-2xl mx-auto">
+          Enhanced productivity and collaboration with deep integrations for global teams
+        </p>
+      </header>
 
-      {/* Analytics Dashboard */}
-      <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Productivity Heat Map */}
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-          <h3 className="text-xl font-semibold mb-4">Timezone Productivity Insights</h3>
-          <div className="space-y-4">
-            <div className="relative h-48 bg-gray-900 rounded-lg p-4">
-              <div className="absolute inset-0 grid grid-cols-24 gap-1 p-4">
-                {analyticsData.productivity.map((data) => (
-                  <div
-                    key={data.hour}
-                    className="relative h-full"
-                    style={{
-                      backgroundColor: `rgba(59, 130, 246, ${0.2 + (data.activityLevel / 100) * 0.8})`,
-                    }}
-                    title={`${data.hour}:00 - Activity Level: ${Math.round(data.activityLevel)}%`}
-                  >
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 opacity-50"></div>
-                  </div>
-                ))}
-              </div>
-              <div className="absolute bottom-2 left-2 text-xs text-gray-400">Hours (UTC)</div>
-            </div>
-            <p className="text-sm text-gray-400">
-              Peak productivity periods across global teams. Darker colors indicate higher activity levels.
-            </p>
-          </div>
-        </div>
-
-        {/* Work Pattern Metrics */}
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-          <h3 className="text-xl font-semibold mb-4">Work Pattern & Efficiency Metrics</h3>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-blue-400">{analyticsData.metrics.projectCompletionImprovement}%</div>
-                <div className="text-sm text-gray-400">Improved Project Completion</div>
-              </div>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-green-400">{analyticsData.metrics.collaborationEfficiency}%</div>
-                <div className="text-sm text-gray-400">Collaboration Efficiency</div>
-              </div>
-            </div>
-            <div className="bg-gray-900 p-4 rounded-lg">
-              <h4 className="font-semibold mb-2">AI Recommendations</h4>
-              <ul className="text-sm text-gray-400 space-y-2">
-                {analyticsData.metrics.recommendations.map((rec, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className={rec.type === 'warning' ? 'text-yellow-400' : 'text-blue-400'}>
-                      {rec.type === 'warning' ? '⚠️' : '💡'}
-                    </span>
-                    <span>{rec.message}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Deep Integrations with Productivity Tools */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Deep Integrations with Productivity Tools</h2>
-        <p className="text-gray-400 mb-6">Seamlessly connect with your existing workflow tools for maximum productivity and efficiency.</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Calendar Integration */}
-          <div className="bg-gray-800 p-5 rounded-lg shadow-lg border border-gray-700 hover:border-blue-500 transition-all group">
-            <div className="flex items-center mb-3">
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-3">
-                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-lg group-hover:text-blue-400 transition-colors">Calendar Sync</h3>
-            </div>
-            <p className="text-sm text-gray-400 mb-3">Automatic synchronization with Outlook, Google Calendar, and iCloud.</p>
-            <div className="flex items-center space-x-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-300">
-                <span className="h-2 w-2 mr-1 bg-green-400 rounded-full"></span>
-                Connected
-              </span>
-              <span className="text-xs text-gray-400">Last sync: 5m ago</span>
-            </div>
-          </div>
-
-          {/* Communication Platforms */}
-          <div className="bg-gray-800 p-5 rounded-lg shadow-lg border border-gray-700 hover:border-indigo-500 transition-all group">
-            <div className="flex items-center mb-3">
-              <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3">
-                <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-lg group-hover:text-indigo-400 transition-colors">Communication</h3>
-            </div>
-            <p className="text-sm text-gray-400 mb-3">Integrate with Slack, Teams, and email for seamless scheduling.</p>
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center bg-gray-700 rounded-full px-2 py-1">
-                <div className="w-4 h-4 bg-[#4A154B] rounded mr-1"></div>
-                <span className="text-xs">Slack</span>
-              </div>
-              <div className="flex items-center bg-gray-700 rounded-full px-2 py-1">
-                <div className="w-4 h-4 bg-[#6264A7] rounded mr-1"></div>
-                <span className="text-xs">Teams</span>
-              </div>
-              <div className="flex items-center bg-gray-700 rounded-full px-2 py-1">
-                <div className="w-4 h-4 bg-[#D44638] rounded mr-1"></div>
-                <span className="text-xs">Gmail</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Video Conferencing */}
-          <div className="bg-gray-800 p-5 rounded-lg shadow-lg border border-gray-700 hover:border-purple-500 transition-all group">
-            <div className="flex items-center mb-3">
-              <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mr-3">
-                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-lg group-hover:text-purple-400 transition-colors">Video Meetings</h3>
-            </div>
-            <p className="text-sm text-gray-400 mb-3">Auto-generate meeting links for Zoom, Meet, Teams, and Webex.</p>
-            <div className="flex items-center">
-              <select className="text-xs bg-gray-700 border border-gray-600 rounded-md px-2 py-1 mr-2">
-                <option>Zoom (Default)</option>
-                <option>Google Meet</option>
-                <option>Microsoft Teams</option>
-                <option>Webex</option>
-              </select>
-              <button className="text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-md px-2 py-1">
-                Generate Link
-              </button>
-            </div>
-          </div>
-
-          {/* HR & Enterprise Systems */}
-          <div className="bg-gray-800 p-5 rounded-lg shadow-lg border border-gray-700 hover:border-green-500 transition-all group">
-            <div className="flex items-center mb-3">
-              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mr-3">
-                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-lg group-hover:text-green-400 transition-colors">HR & Enterprise</h3>
-            </div>
-            <p className="text-sm text-gray-400 mb-3">Connect with HR systems to respect holidays, PTO, and work schedules.</p>
-            <div className="flex flex-col">
-              <div className="flex justify-between items-center mb-1.5">
-                <span className="text-xs">Company Holidays</span>
-                <span className="relative inline-block w-8 h-4 rounded-full bg-green-500">
-                  <span className="absolute right-0.5 top-0.5 w-3 h-3 rounded-full bg-white"></span>
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs">Team PTO Calendar</span>
-                <span className="relative inline-block w-8 h-4 rounded-full bg-green-500">
-                  <span className="absolute right-0.5 top-0.5 w-3 h-3 rounded-full bg-white"></span>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Unified User Experience */}
-        <div className="mt-6 bg-gradient-to-r from-gray-800 to-gray-900 p-6 rounded-lg shadow-lg border border-gray-700">
-          <h3 className="text-xl font-semibold mb-3">Unified User Experience</h3>
-          <p className="text-gray-300 mb-4">Experience seamless coordination across all your tools with timezone intelligence built-in.</p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <div className="flex-1 bg-gray-800/50 p-4 rounded-lg border border-gray-600">
-              <h4 className="font-medium text-md mb-2">Scheduling Assistant</h4>
-              <p className="text-sm text-gray-400">Type <span className="bg-gray-700 font-mono text-xs px-1 py-0.5 rounded">/schedule</span> in any integrated app to start scheduling.</p>
-              <div className="mt-3 bg-gray-700 p-2 rounded text-sm">
-                <span className="text-green-400">@TeamBot:</span> I&apos;ll find the best time for &quot;Product Review&quot; with @Sarah and @Mike
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-center">
-              <svg className="hidden sm:block w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-              </svg>
-              <svg className="block sm:hidden w-8 h-8 text-blue-400 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-              </svg>
-            </div>
-            
-            <div className="flex-1 bg-gray-800/50 p-4 rounded-lg border border-gray-600">
-              <h4 className="font-medium text-md mb-2">Smart Update Propagation</h4>
-              <p className="text-sm text-gray-400">Changes in one tool automatically update everywhere else.</p>
-              <div className="mt-3 flex items-center justify-between text-sm">
-                <span className="bg-green-900/30 text-green-400 px-2 py-1 rounded">&#10003; Calendar Updated</span>
-                <span className="bg-green-900/30 text-green-400 px-2 py-1 rounded">&#10003; Slack Notified</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Original WorldClock Content */}
-      <div className="flex justify-center w-full overflow-x-hidden">
-        <div className="w-full max-w-7xl space-y-6 transform-gpu">
-          {/* AI Scheduling Controls */}
-          <div className="bg-gray-900 p-4 rounded-lg shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white font-bold text-xl">AI-Powered Scheduling</h2>
-              <button
-                onClick={() => setShowAIScheduler(!showAIScheduler)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                {showAIScheduler ? 'Hide Scheduler' : 'Show Scheduler'}
-              </button>
-            </div>
-            
-            {showAIScheduler && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <TimezoneSelect
-                      options={timezones}
-                      onChange={(val) => val && handleAddParticipant(val.value)}
-                      placeholder="Add participant timezone..."
-                      styles={selectStyles}
-                    />
-                  </div>
+      {/* Main content grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        {/* Left column - Main content */}
+        <div className="lg:col-span-8">
+          {/* World Clock Display */}
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">Global Time Overview</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-gray-700 rounded-lg p-4">
+                <h3 className="text-lg font-medium mb-2">San Francisco</h3>
+                <div className="text-3xl font-bold">
+                  {format(new Date(), 'h:mm a')}
                 </div>
-                
-                <AIScheduler
-                  participants={participants.map(p => ({
-                    ...p,
-                    workingHours: p.name === "You" ? userPreferences.workingHours : p.workingHours,
-                    preferredTimes: p.name === "You" ? userPreferences.preferredMeetingTimes : p.preferredTimes,
-                    focusTime: p.name === "You" ? userPreferences.focusTime : p.focusTime
-                  }))}
-                  duration={60}
-                  onSlotSelect={handleAISlotSelect}
-                  userPreferences={userPreferences}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Existing Clock Grid */}
-          <div 
-            className="grid grid-cols-5 gap-4 w-full"
-            role="region" 
-            aria-label="World Clock Timezone Comparison"
-          >
-            {/* Local Time Column */}
-            <div className="bg-gray-900 p-4 rounded-lg shadow-lg w-full">
-              <div className="text-center text-white mb-4">
-                <h3 className="font-bold">Local Time</h3>
-                <div className="text-sm text-gray-400">
-                  {userLocalTimezone}
-                  {isTimezoneDST(userLocalTimezone) && (
-                    <span className="ml-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded" role="status">DST</span>
-                  )}
+                <div className="text-sm text-gray-400 mt-1">
+                  {format(new Date(), 'EEEE, MMMM d, yyyy')}
                 </div>
-                {getDSTTransitions(userLocalTimezone) && (
-                  <div className="text-xs text-gray-400 mt-1" role="note">
-                    DST: {getDSTTransitions(userLocalTimezone)?.start} - {getDSTTransitions(userLocalTimezone)?.end}
-                  </div>
-                )}
               </div>
-              <div 
-                ref={localColumnRef} 
-                className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] transform-gpu"
-                role="listbox"
-                aria-label="Local times"
-              >
-                {localTimeSlots.map((time, index) => {
-                  const zonedTime = toZonedTime(time, userLocalTimezone);
-                  const formattedTime = format(zonedTime, "MMM d, hh:mm a");
-                  const isNow = localTime && 
-                    format(zonedTime, "MMM d, hh:mm a") === format(toZonedTime(localTime, userLocalTimezone), "MMM d, hh:mm a");
-                  return (
-                    <div 
-                      key={`${formattedTime}-${index}`}
-                      role="option"
-                      aria-selected={isNow}
-                      tabIndex={0}
-                      className={`p-2 text-center cursor-pointer transition-all duration-200 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isNow ? "bg-blue-500 text-white font-bold shadow-lg" : "text-gray-300"
-                      }`}
-                      onClick={() => handleTimeSelection(time)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleTimeSelection(time)}
-                    >
-                      {formattedTime}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Other Timezone Columns */}
-            {selectedTimezones.map((tz, idx) => {
-              const transitions = getDSTTransitions(tz.value);
               
-              return (
-                <div 
-                  key={idx} 
-                  className="bg-gray-800 p-4 rounded-lg shadow-lg w-full transform transition-all duration-200 hover:shadow-xl"
-                  role="region"
-                  aria-label={`Timezone: ${tz.label}`}
-                >
-                  <div className="mb-4">
-                    <TimezoneSelect
-                      options={timezones}
-                      value={tz}
-                      onChange={(val) => {
-                        if (val) {
-                          const newZones = [...selectedTimezones];
-                          newZones[idx] = val;
-                          setSelectedTimezones(newZones);
-                        }
-                      }}
-                      className="mb-2"
-                      styles={selectStyles}
-                      isSearchable
-                      placeholder="Select timezone..."
-                      noOptionsMessage={() => "No timezones found"}
-                    />
-                    {transitions && (
-                      <div className="text-xs text-center text-gray-400 transition-opacity duration-200 hover:text-gray-200">
-                        DST: {transitions.start} - {transitions.end}
-                      </div>
+              <div className="bg-gray-700 rounded-lg p-4">
+                <h3 className="text-lg font-medium mb-2">London</h3>
+                <div className="text-3xl font-bold">
+                  {format(toZonedTime(new Date(), 'Europe/London'), 'h:mm a')}
+                </div>
+                <div className="text-sm text-gray-400 mt-1">
+                  {format(toZonedTime(new Date(), 'Europe/London'), 'EEEE, MMMM d, yyyy')}
+                </div>
+              </div>
+              
+              <div className="bg-gray-700 rounded-lg p-4">
+                <h3 className="text-lg font-medium mb-2">Tokyo</h3>
+                <div className="text-3xl font-bold">
+                  {format(toZonedTime(new Date(), 'Asia/Tokyo'), 'h:mm a')}
+                </div>
+                <div className="text-sm text-gray-400 mt-1">
+                  {format(toZonedTime(new Date(), 'Asia/Tokyo'), 'EEEE, MMMM d, yyyy')}
+                </div>
+              </div>
+              
+              <div className="bg-gray-700 rounded-lg p-4">
+                <h3 className="text-lg font-medium mb-2">Sydney</h3>
+                <div className="text-3xl font-bold">
+                  {format(toZonedTime(new Date(), 'Australia/Sydney'), 'h:mm a')}
+                </div>
+                <div className="text-sm text-gray-400 mt-1">
+                  {format(toZonedTime(new Date(), 'Australia/Sydney'), 'EEEE, MMMM d, yyyy')}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Deep Integrations Section */}
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+            <h2 className="text-2xl font-bold mb-4">Deep Integrations with Productivity Tools</h2>
+            <p className="text-gray-400 mb-6">Seamlessly connect with your existing workflow tools for maximum productivity and efficiency.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Calendar Integration */}
+              <div className="bg-gray-700 p-5 rounded-lg shadow border border-gray-600 hover:border-blue-500 transition-all group">
+                <div className="flex items-center mb-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-3">
+                    <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-lg group-hover:text-blue-400 transition-colors">Calendar Sync</h3>
+                </div>
+                <p className="text-sm text-gray-400 mb-3">Automatic synchronization with Outlook, Google Calendar, and iCloud.</p>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs">Outlook</span>
+                    <button 
+                      onClick={() => handleToggleCalendar('outlook')}
+                      disabled={loading[`connect-calendar-outlook`] || loading[`disconnect-calendar-outlook`]}
+                      className={`relative inline-flex items-center h-4 rounded-full w-8 ${
+                        integrationsState.calendars.outlook.connected ? 'bg-green-500' : 'bg-gray-600'
+                      } transition-colors ${loading[`connect-calendar-outlook`] || loading[`disconnect-calendar-outlook`] ? 'opacity-50' : ''}`}
+                    >
+                      <span 
+                        className={`absolute ${
+                          integrationsState.calendars.outlook.connected ? 'right-0.5' : 'left-0.5'
+                        } top-0.5 w-3 h-3 rounded-full bg-white transition-all`} 
+                      />
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs">Google</span>
+                    <button 
+                      onClick={() => handleToggleCalendar('google')}
+                      disabled={loading[`connect-calendar-google`] || loading[`disconnect-calendar-google`]}
+                      className={`relative inline-flex items-center h-4 rounded-full w-8 ${
+                        integrationsState.calendars.google.connected ? 'bg-green-500' : 'bg-gray-600'
+                      } transition-colors ${loading[`connect-calendar-google`] || loading[`disconnect-calendar-google`] ? 'opacity-50' : ''}`}
+                    >
+                      <span 
+                        className={`absolute ${
+                          integrationsState.calendars.google.connected ? 'right-0.5' : 'left-0.5'
+                        } top-0.5 w-3 h-3 rounded-full bg-white transition-all`} 
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Communication Platforms */}
+              <div className="bg-gray-700 p-5 rounded-lg shadow border border-gray-600 hover:border-indigo-500 transition-all group">
+                <div className="flex items-center mb-3">
+                  <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3">
+                    <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-lg group-hover:text-indigo-400 transition-colors">Communication</h3>
+                </div>
+                <p className="text-sm text-gray-400 mb-3">Integrate with Slack, Teams, and email for seamless scheduling.</p>
+                <div className="flex flex-wrap gap-2">
+                  <div className={`flex items-center ${integrationsState.communications.slack.connected ? 'bg-gray-600' : 'bg-gray-800 opacity-60'} rounded-full px-2 py-1 cursor-pointer`} onClick={() => connectCommunication('slack')}>
+                    <div className="w-4 h-4 bg-[#4A154B] rounded mr-1"></div>
+                    <span className="text-xs">Slack</span>
+                    {integrationsState.communications.slack.connected && (
+                      <svg className="w-3 h-3 ml-1 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
                     )}
                   </div>
-                  <div 
-                    ref={columnRefs[idx]} 
-                    className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] transform-gpu"
-                    role="listbox"
-                    aria-label={`Times for ${tz.label}`}
-                  >
-                    {timeSlots.map((time) => {
-                      const zonedTime = toZonedTime(time, tz.value);
-                      const formattedTime = format(zonedTime, "MMM d, hh:mm a");
-                      const timeKey = `${time.getTime()}-${tz.value}`;
-                      
-                      const isHighlighted = highlightedTime && 
-                        format(toZonedTime(time, tz.value), "MMM d, hh:mm a") === 
-                        format(toZonedTime(highlightedTime, tz.value), "MMM d, hh:mm a");
-                      const isLocalTime = localTime && 
-                        format(zonedTime, "MMM d, hh:mm a") === 
-                        format(toZonedTime(roundToNearestIncrement(localTime, 30), tz.value), "MMM d, hh:mm a");
-
-                      const timeString = format(zonedTime, "MMM d");
-                      const isDSTTransition = transitions && (timeString === transitions.start || timeString === transitions.end);
-
-                      return (
-                        <div 
-                          key={timeKey}
-                          role="option"
-                          aria-selected={isHighlighted || isLocalTime}
-                          tabIndex={0}
-                          style={{
-                            contain: 'content',
-                            height: '40px',
-                            lineHeight: '24px'
-                          }}
-                          className={`p-2 text-center cursor-pointer relative group focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            isHighlighted ? "bg-pink-500 text-white font-bold" : 
-                            isLocalTime ? "bg-blue-500 text-white font-bold" : 
-                            "text-gray-300 hover:bg-gray-700 hover:text-white"
-                          }`}
-                          onClick={() => handleTimeSelection(time)}
-                          onKeyPress={(e) => e.key === 'Enter' && handleTimeSelection(time)}
-                        >
-                          {formattedTime}
-                          {isDSTTransition && (
-                            <div 
-                              className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full transform transition-transform duration-200 group-hover:scale-150" 
-                              title={`DST ${timeString === transitions.start ? 'Starts' : 'Ends'}`}
-                              role="status"
-                              aria-label={`DST ${timeString === transitions.start ? 'Starts' : 'Ends'}`}
-                            >
-                              <div className="absolute inset-0 bg-yellow-400 rounded-full animate-ping opacity-75"></div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                  <div className={`flex items-center ${integrationsState.communications.teams.connected ? 'bg-gray-600' : 'bg-gray-800 opacity-60'} rounded-full px-2 py-1 cursor-pointer`} onClick={() => connectCommunication('teams')}>
+                    <div className="w-4 h-4 bg-[#6264A7] rounded mr-1"></div>
+                    <span className="text-xs">Teams</span>
+                    {integrationsState.communications.teams.connected && (
+                      <svg className="w-3 h-3 ml-1 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+
+              {/* Video Conferencing */}
+              <div className="bg-gray-700 p-5 rounded-lg shadow border border-gray-600 hover:border-purple-500 transition-all group">
+                <div className="flex items-center mb-3">
+                  <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mr-3">
+                    <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-lg group-hover:text-purple-400 transition-colors">Video Meetings</h3>
+                </div>
+                <p className="text-sm text-gray-400 mb-3">Auto-generate meeting links for Zoom, Meet, Teams, and Webex.</p>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center">
+                    <select 
+                      className="text-xs bg-gray-600 border border-gray-500 rounded-md px-2 py-1 mr-2 flex-1"
+                      value={selectedVideoService}
+                      onChange={handleVideoServiceChange}
+                    >
+                      <option value="zoom">Zoom {integrationsState.videoServices.zoom.connected ? '(Connected)' : ''}</option>
+                      <option value="meet">Google Meet {integrationsState.videoServices.meet.connected ? '(Connected)' : ''}</option>
+                      <option value="teams">Microsoft Teams {integrationsState.videoServices.teams.connected ? '(Connected)' : ''}</option>
+                      <option value="webex">Webex {integrationsState.videoServices.webex.connected ? '(Connected)' : ''}</option>
+                    </select>
+                    <button 
+                      className={`text-xs ${loading[`generate-link-${selectedVideoService}`] ? 'bg-purple-800' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded-md px-2 py-1`}
+                      onClick={handleGenerateMeetingLink}
+                      disabled={loading[`generate-link-${selectedVideoService}`] || !integrationsState.videoServices[selectedVideoService].connected}
+                    >
+                      {loading[`generate-link-${selectedVideoService}`] ? 'Generating...' : 'Generate Link'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* HR & Enterprise Systems */}
+              <div className="bg-gray-700 p-5 rounded-lg shadow border border-gray-600 hover:border-green-500 transition-all group">
+                <div className="flex items-center mb-3">
+                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mr-3">
+                    <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-lg group-hover:text-green-400 transition-colors">HR & Enterprise</h3>
+                </div>
+                <p className="text-sm text-gray-400 mb-3">Connect with HR systems to respect holidays, PTO, and work schedules.</p>
+                <div className="flex flex-col">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-xs">Company Holidays</span>
+                    <button 
+                      onClick={() => handleToggleHRSystem('holidays')}
+                      disabled={loading[`connect-hr-holidays`] || loading[`disconnect-hr-holidays`]}
+                      className={`relative inline-flex items-center h-4 rounded-full w-8 ${
+                        integrationsState.hrSystems.holidays.connected ? 'bg-green-500' : 'bg-gray-600'
+                      } transition-colors`}
+                    >
+                      <span 
+                        className={`absolute ${
+                          integrationsState.hrSystems.holidays.connected ? 'right-0.5' : 'left-0.5'
+                        } top-0.5 w-3 h-3 rounded-full bg-white transition-all`} 
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+          
+          {/* Command Center */}
+          <div className="h-[400px] mb-6">
+            <CommandCenter />
+          </div>
+          
+          {/* Integration Analytics */}
+          <IntegrationAnalytics />
+        </div>
+        
+        {/* Right column - Sidebar */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* Integration Controls Panel */}
+          <div className="bg-gray-800 rounded-lg shadow-lg p-5 border border-gray-700">
+            <h3 className="text-xl font-semibold mb-4">Integration Controls</h3>
+            
+            {/* Video Services */}
+            <div className="mb-5">
+              <h4 className="text-sm font-medium text-gray-300 mb-2">Video Services</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(integrationsState.videoServices).map(([key, service]) => (
+                  <button
+                    key={key}
+                    onClick={() => connectVideoService(key as 'zoom' | 'meet' | 'teams' | 'webex')}
+                    className={`flex items-center justify-center px-3 py-2 rounded-lg text-sm ${
+                      service.connected 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    {renderServiceIcon(key)}
+                    <span className="ml-2">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Calendar Services */}
+            <div className="mb-5">
+              <h4 className="text-sm font-medium text-gray-300 mb-2">Calendar Services</h4>
+              <div className="grid grid-cols-3 gap-2">
+                {Object.entries(integrationsState.calendars).map(([key, service]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleToggleCalendar(key as 'outlook' | 'google' | 'apple')}
+                    className={`flex items-center justify-center px-3 py-2 rounded-lg text-sm ${
+                      service.connected 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    {renderServiceIcon(key)}
+                    <span className="ml-2">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Communication Platforms */}
+            <div className="mb-5">
+              <h4 className="text-sm font-medium text-gray-300 mb-2">Communication Platforms</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(integrationsState.communications).map(([key, platform]) => (
+                  <button
+                    key={key}
+                    onClick={() => connectCommunication(key as 'slack' | 'teams' | 'email')}
+                    className={`flex items-center justify-center px-3 py-2 rounded-lg text-sm ${
+                      platform.connected 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    {renderServiceIcon(key)}
+                    <span className="ml-2">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* HR Systems */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-300 mb-2">HR Systems</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(integrationsState.hrSystems).map(([key, system]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleToggleHRSystem(key as 'holidays' | 'pto')}
+                    className={`flex items-center justify-center px-3 py-2 rounded-lg text-sm ${
+                      system.connected 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    {renderServiceIcon(key)}
+                    <span className="ml-2">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Calendar Events Panel */}
+          <CalendarEventsPanel />
+          
+          {/* Notification Center */}
+          <NotificationCenter />
         </div>
       </div>
-
-      {/* Keyboard Navigation Help */}
-      <div className="fixed bottom-4 left-4 text-sm text-gray-400 bg-gray-800 p-2 rounded-lg shadow-lg opacity-0 hover:opacity-100 transition-opacity duration-200">
-        <p>Keyboard Navigation:</p>
-        <ul className="list-disc list-inside">
-          <li>↑↓: Navigate 30 minutes</li>
-          <li>Page Up/Down: Navigate hours</li>
-          <li>Home: Current time</li>
-        </ul>
-      </div>
     </div>
+  );
+}
+
+// Wrapper component with provider
+export default function WorldClock4() {
+  return (
+    <IntegrationsProvider>
+      <WorldClockContent />
+    </IntegrationsProvider>
   );
 } 

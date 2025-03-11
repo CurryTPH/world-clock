@@ -48,12 +48,270 @@ export default function GuidesPage() {
             
             <div className="bg-gray-900/50 p-4 rounded-lg">
               <h3 className="text-lg font-medium mb-2">World Clock 3</h3>
-              <p className="text-gray-300">Advanced analytics and global workforce optimization features.</p>
+              <p className="text-gray-300">Advanced view with team management and collaborative scheduling.</p>
             </div>
             
             <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-2">Settings</h3>
-              <p className="text-gray-300">Customize your experience with working hours, meeting preferences, and analytics options.</p>
+              <h3 className="text-lg font-medium mb-2">World Clock 4</h3>
+              <p className="text-gray-300">Enterprise-ready view with deep integrations for productivity tools and analytics.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Deep Integrations Guide */}
+        <section className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
+          <h2 className="text-2xl font-semibold mb-4">Deep Integrations with Productivity Tools</h2>
+          <p className="text-gray-300 mb-6">
+            World Clock 4 offers seamless integration with your existing productivity ecosystem, allowing you to manage time across different timezones while staying connected to your essential work tools.
+          </p>
+          
+          <div className="space-y-6">
+            {/* Calendar Integrations */}
+            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold">Calendar Integrations</h3>
+              </div>
+              
+              <div className="space-y-4 ml-2">
+                <div>
+                  <h4 className="text-lg font-medium text-blue-400 mb-2">Supported Calendar Services</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
+                    <li><span className="font-medium">Outlook Calendar:</span> Sync with Microsoft's calendar service</li>
+                    <li><span className="font-medium">Google Calendar:</span> Connect to Google Workspace calendars</li>
+                    <li><span className="font-medium">Apple Calendar:</span> Integrate with iCloud calendar services</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-medium text-blue-400 mb-2">Setup Instructions</h4>
+                  <ol className="list-decimal list-inside space-y-2 text-gray-300 ml-4">
+                    <li>Navigate to the <span className="font-mono bg-gray-800 px-1 rounded">Integration Controls</span> panel in World Clock 4</li>
+                    <li>Under <span className="font-mono bg-gray-800 px-1 rounded">Calendar Services</span>, click on the service you want to connect</li>
+                    <li>Follow the authentication prompts to grant World Clock access</li>
+                    <li>Once connected, your calendar events will appear in the Calendar Events Panel</li>
+                  </ol>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-medium text-blue-400 mb-2">Key Features</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
+                    <li>View upcoming meetings across all connected calendars</li>
+                    <li>Automatic timezone conversion for all events</li>
+                    <li>One-click access to meeting links</li>
+                    <li>Filter events by calendar service</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            {/* Communication Platforms */}
+            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold">Communication Platforms</h3>
+              </div>
+              
+              <div className="space-y-4 ml-2">
+                <div>
+                  <h4 className="text-lg font-medium text-indigo-400 mb-2">Supported Platforms</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
+                    <li><span className="font-medium">Slack:</span> Connect to your Slack workspaces</li>
+                    <li><span className="font-medium">Microsoft Teams:</span> Integrate with Teams channels</li>
+                    <li><span className="font-medium">Email:</span> Connect to your email services</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-medium text-indigo-400 mb-2">Benefits</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
+                    <li>Receive notifications about new messages</li>
+                    <li>Send timezone-aware meeting invitations</li>
+                    <li>Share timezone comparisons with team members</li>
+                    <li>Coordinate across distributed teams more effectively</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            {/* Video Conferencing */}
+            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold">Video Conferencing</h3>
+              </div>
+              
+              <div className="space-y-4 ml-2">
+                <div>
+                  <h4 className="text-lg font-medium text-purple-400 mb-2">Supported Services</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
+                    <li><span className="font-medium">Zoom:</span> Generate and manage Zoom meeting links</li>
+                    <li><span className="font-medium">Google Meet:</span> Create Google Meet sessions</li>
+                    <li><span className="font-medium">Microsoft Teams:</span> Schedule Teams meetings</li>
+                    <li><span className="font-medium">Webex:</span> Connect with Cisco Webex</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-medium text-purple-400 mb-2">How to Generate Meeting Links</h4>
+                  <ol className="list-decimal list-inside space-y-2 text-gray-300 ml-4">
+                    <li>Connect your preferred video service in the Integration Controls panel</li>
+                    <li>Select the service from the dropdown in the Video Meetings section</li>
+                    <li>Click "Generate Link" to create a new meeting</li>
+                    <li>The link will be created and can be copied or shared directly</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+            
+            {/* HR & Enterprise Systems */}
+            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold">HR & Enterprise Systems</h3>
+              </div>
+              
+              <div className="space-y-4 ml-2">
+                <div>
+                  <h4 className="text-lg font-medium text-green-400 mb-2">Available Integrations</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
+                    <li><span className="font-medium">Company Holidays:</span> Sync with your organization's holiday calendar</li>
+                    <li><span className="font-medium">PTO System:</span> View team members' time-off schedules</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-medium text-green-400 mb-2">Benefits</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
+                    <li>Avoid scheduling meetings during company holidays</li>
+                    <li>Respect team members' time off when planning</li>
+                    <li>Improve work-life balance across global teams</li>
+                    <li>Enhance scheduling efficiency with awareness of availability</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            {/* Command Center */}
+            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold">Command Center</h3>
+              </div>
+              
+              <div className="space-y-4 ml-2">
+                <div>
+                  <h4 className="text-lg font-medium text-yellow-400 mb-2">Available Commands</h4>
+                  <div className="bg-gray-800 p-3 rounded-md font-mono text-sm text-gray-300 mb-3">
+                    <p><span className="text-green-400">help</span> - Show available commands</p>
+                    <p><span className="text-green-400">status</span> - Show integration status</p>
+                    <p><span className="text-green-400">schedule [person] [duration]</span> - Schedule a meeting</p>
+                    <p><span className="text-green-400">notify [service] [message]</span> - Send a notification</p>
+                    <p><span className="text-green-400">sync [service]</span> - Sync a specific service</p>
+                    <p><span className="text-green-400">clear</span> - Clear command history</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-medium text-yellow-400 mb-2">Tips for Using the Command Center</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
+                    <li>Use the Command Center for quick actions without navigating through the UI</li>
+                    <li>Type "help" to see all available commands at any time</li>
+                    <li>Commands can be used to interact with all connected services</li>
+                    <li>Command history is preserved during your session</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            {/* Integration Analytics */}
+            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold">Integration Analytics</h3>
+              </div>
+              
+              <div className="space-y-4 ml-2">
+                <div>
+                  <h4 className="text-lg font-medium text-red-400 mb-2">Available Metrics</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
+                    <li><span className="font-medium">Connection Status:</span> Overview of all connected services</li>
+                    <li><span className="font-medium">Sync Health:</span> Status of data synchronization</li>
+                    <li><span className="font-medium">Usage Metrics:</span> Statistics on meetings scheduled, notifications sent, and commands executed</li>
+                    <li><span className="font-medium">Timezone Coverage:</span> Analysis of your team's global distribution</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-medium text-red-400 mb-2">Benefits of Analytics</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
+                    <li>Identify potential issues with integrations before they affect productivity</li>
+                    <li>Understand your team's global distribution and optimize meeting times</li>
+                    <li>Track usage patterns to improve workflow efficiency</li>
+                    <li>Make data-driven decisions about team scheduling and communication</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            {/* Best Practices */}
+            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold">Best Practices</h3>
+              </div>
+              
+              <div className="space-y-4 ml-2">
+                <div>
+                  <h4 className="text-lg font-medium text-cyan-400 mb-2">Getting the Most from Integrations</h4>
+                  <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                    <li>Connect all relevant services for a comprehensive productivity ecosystem</li>
+                    <li>Use the Command Center for quick actions across multiple services</li>
+                    <li>Regularly check Integration Analytics to identify and resolve sync issues</li>
+                    <li>Combine calendar integrations with video conferencing to streamline meeting creation</li>
+                    <li>Leverage HR system integrations to respect team members' time off and holidays</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-medium text-cyan-400 mb-2">Troubleshooting Tips</h4>
+                  <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                    <li>If a service shows as disconnected, try reconnecting through the Integration Controls panel</li>
+                    <li>For calendar sync issues, use the "sync" command in the Command Center</li>
+                    <li>Clear browser cache and cookies if authentication problems persist</li>
+                    <li>Check the Sync Health section in Integration Analytics for specific service issues</li>
+                    <li>Ensure you've granted all necessary permissions during the connection process</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </section>
