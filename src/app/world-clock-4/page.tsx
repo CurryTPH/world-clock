@@ -1,12 +1,12 @@
 "use client";
 
 import React from 'react';
-import WorldClock3 from '../components/WorldClock3';
+import WorldClock4 from '../components/WorldClock4';
 
 export default function WorldClock4Page() {
   return (
     <div>
-      <WorldClock3 />
+      <WorldClock4 />
     </div>
   );
 } 
