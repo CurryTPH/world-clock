@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { format, set } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import TimezoneSelect, { selectStyles, commonTimezones, isTimezoneDST, getDSTTransitions } from './TimezoneSelect';
@@ -64,12 +64,12 @@ export default function WorldClock() {
 
   const highlightTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const localColumnRef = useRef<HTMLDivElement>(null);
-  const columnRefs = [
+  const columnRefs = useMemo(() => [
     useRef<HTMLDivElement>(null),
     useRef<HTMLDivElement>(null),
     useRef<HTMLDivElement>(null),
-    useRef<HTMLDivElement>(null),
-  ];
+    useRef<HTMLDivElement>(null)
+  ], []);
 
   const scrollToTime = useCallback((targetElement: Element | null) => {
     if (targetElement instanceof HTMLElement) {
