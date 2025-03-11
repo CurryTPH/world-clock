@@ -15,30 +15,44 @@ const Sidebar = () => {
   };
   
   return (
-    <aside className="w-64 bg-gray-800 p-4 h-full shadow-lg">
-      <div className="flex items-center gap-2 mb-6">
-        <Image src="/globe.svg" alt="World Clock Logo" width={32} height={32} />
-        <h2 className="text-xl font-bold">World Clock App</h2>
+    <aside className="w-64 bg-gray-850 border-r border-gray-700/50 flex flex-col">
+      <div className="p-4 border-b border-gray-700/50">
+        <div className="flex items-center gap-3">
+          <Image src="/globe.svg" alt="World Clock Logo" width={32} height={32} className="w-8 h-8" />
+          <h2 className="text-lg font-semibold text-white">World Clock</h2>
+        </div>
       </div>
       
-      <nav className="space-y-4">
+      <nav className="flex-1 p-4 space-y-2">
         <Link 
           href="/" 
-          className={`block p-2 rounded hover:bg-blue-500 transition-colors ${isActive('/') ? 'bg-blue-500' : 'bg-gray-700'}`}
+          className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
+            isActive('/') 
+              ? 'bg-primary-600 text-white' 
+              : 'text-gray-300 hover:bg-gray-750 hover:text-white'
+          }`}
           aria-current={isActive('/') ? 'page' : undefined}
         >
           World Clock
         </Link>
         <Link 
           href="/world-clock-2" 
-          className={`block p-2 rounded hover:bg-blue-500 transition-colors ${isActive('/world-clock-2') ? 'bg-blue-500' : 'bg-gray-700'}`}
+          className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
+            isActive('/world-clock-2') 
+              ? 'bg-primary-600 text-white' 
+              : 'text-gray-300 hover:bg-gray-750 hover:text-white'
+          }`}
           aria-current={isActive('/world-clock-2') ? 'page' : undefined}
         >
           World Clock 2
         </Link>
         <Link 
           href="/settings" 
-          className={`block p-2 rounded hover:bg-blue-500 transition-colors ${isActive('/settings') ? 'bg-blue-500' : 'bg-gray-700'}`}
+          className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
+            isActive('/settings') 
+              ? 'bg-primary-600 text-white' 
+              : 'text-gray-300 hover:bg-gray-750 hover:text-white'
+          }`}
           aria-current={isActive('/settings') ? 'page' : undefined}
         >
           Settings

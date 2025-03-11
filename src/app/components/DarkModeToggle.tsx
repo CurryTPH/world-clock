@@ -13,16 +13,18 @@ const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ className = "" }) => {
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     
-    setDarkMode(savedTheme === "dark" || (!savedTheme && prefersDark));
+    const shouldBeDark = savedTheme === "dark" || (!savedTheme && prefersDark);
+    setDarkMode(shouldBeDark);
     
     // Apply the theme
-    document.documentElement.classList.toggle("dark", savedTheme === "dark" || (!savedTheme && prefersDark));
+    document.documentElement.setAttribute('data-theme', shouldBeDark ? 'dark' : 'light');
   }, []);
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle("dark");
-    localStorage.setItem("theme", !darkMode ? "dark" : "light");
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    document.documentElement.setAttribute('data-theme', newDarkMode ? 'dark' : 'light');
+    localStorage.setItem("theme", newDarkMode ? "dark" : "light");
   };
 
   return (
