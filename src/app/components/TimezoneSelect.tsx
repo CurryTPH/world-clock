@@ -2,12 +2,94 @@
 
 import type { Props as SelectProps } from 'react-select';
 import ReactSelect from 'react-select';
+import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 // Define the option type for timezones
 export interface TimezoneOption {
   value: string;
   label: string;
+  isDST?: boolean;
+  dstTransitions?: {
+    start: string;
+    end: string;
+  };
 }
+
+// Helper function to check if a timezone is currently in DST
+export const isTimezoneDST = (timezone: string): boolean => {
+  const now = new Date();
+  const timeZoneDate = toZonedTime(now, timezone);
+  const januaryOffset = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
+  const julyOffset = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
+  const isDST = Math.max(januaryOffset, julyOffset) !== timeZoneDate.getTimezoneOffset();
+  return isDST;
+};
+
+// Helper function to get DST transition dates for a timezone
+export const getDSTTransitions = (timezone: string): { start: string; end: string } | undefined => {
+  const year = new Date().getFullYear();
+  const transitions = { start: '', end: '' };
+  
+  // Check each month to find DST transitions
+  for (let month = 0; month < 12; month++) {
+    const date = new Date(year, month, 1);
+    const prevMonth = new Date(year, month - 1, 1);
+    
+    const currentOffset = toZonedTime(date, timezone).getTimezoneOffset();
+    const prevOffset = toZonedTime(prevMonth, timezone).getTimezoneOffset();
+    
+    if (currentOffset !== prevOffset) {
+      // Found a transition, now find the exact day
+      for (let day = 1; day <= 31; day++) {
+        const currentDay = new Date(year, month, day);
+        const prevDay = new Date(year, month, day - 1);
+        
+        if (toZonedTime(currentDay, timezone).getTimezoneOffset() !== 
+            toZonedTime(prevDay, timezone).getTimezoneOffset()) {
+          const transitionDate = format(currentDay, 'MMM d');
+          if (!transitions.start) {
+            transitions.start = transitionDate;
+          } else {
+            transitions.end = transitionDate;
+            return transitions;
+          }
+          break;
+        }
+      }
+    }
+  }
+  
+  return undefined;
+};
+
+// Common timezone options with DST information
+export const commonTimezones: TimezoneOption[] = [
+  { value: "UTC", label: "UTC (No DST)" },
+  { 
+    value: "America/Chicago",
+    label: "Chicago (CST/CDT)",
+    isDST: isTimezoneDST("America/Chicago"),
+    dstTransitions: getDSTTransitions("America/Chicago")
+  },
+  { 
+    value: "America/New_York",
+    label: "New York (EST/EDT)",
+    isDST: isTimezoneDST("America/New_York"),
+    dstTransitions: getDSTTransitions("America/New_York")
+  },
+  { 
+    value: "Europe/London",
+    label: "London (GMT/BST)",
+    isDST: isTimezoneDST("Europe/London"),
+    dstTransitions: getDSTTransitions("Europe/London")
+  },
+  { 
+    value: "Asia/Tokyo",
+    label: "Tokyo (JST)",
+    isDST: false
+  }
+];
 
 // Preload the stylesheet
 if (typeof document !== 'undefined') {
@@ -36,16 +118,39 @@ export const selectStyles = {
     background: '#374151',
     border: '1px solid #4B5563',
   }),
-  option: (base: Record<string, unknown>, state: { isFocused: boolean }) => ({
+  option: (base: Record<string, unknown>, state: { isFocused: boolean; data: TimezoneOption }) => ({
     ...base,
     background: state.isFocused ? '#4B5563' : '#374151',
     '&:hover': {
       background: '#4B5563',
     },
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    '&::after': state.data.isDST ? {
+      content: '"DST"',
+      backgroundColor: '#10B981',
+      color: 'white',
+      padding: '2px 4px',
+      borderRadius: '4px',
+      fontSize: '0.75rem',
+      marginLeft: '8px',
+    } : {},
   }),
-  singleValue: (base: Record<string, unknown>) => ({
+  singleValue: (base: Record<string, unknown>, { data }: { data: TimezoneOption }) => ({
     ...base,
     color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    '&::after': data.isDST ? {
+      content: '"DST"',
+      backgroundColor: '#10B981',
+      color: 'white',
+      padding: '2px 4px',
+      borderRadius: '4px',
+      fontSize: '0.75rem',
+      marginLeft: '8px',
+    } : {},
   }),
   input: (base: Record<string, unknown>) => ({
     ...base,
@@ -68,13 +173,4 @@ export default function TimezoneSelect<
   }
   
   return <ReactSelect {...props} />;
-}
-
-// Common timezone options
-export const commonTimezones: TimezoneOption[] = [
-  { value: "UTC", label: "UTC" },
-  { value: "America/Chicago", label: "Chicago (CST/CDT)" },
-  { value: "America/New_York", label: "New York (EST/EDT)" },
-  { value: "Europe/London", label: "London (GMT/BST)" },
-  { value: "Asia/Tokyo", label: "Tokyo (JST)" },
-]; 
+} 

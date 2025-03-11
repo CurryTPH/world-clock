@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { format, set } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
-import TimezoneSelect, { selectStyles, commonTimezones } from './TimezoneSelect';
+import TimezoneSelect, { selectStyles, commonTimezones, isTimezoneDST, getDSTTransitions } from './TimezoneSelect';
 
 // Add this effect to preload the Select component stylesheet
 // in a higher scope outside the component
@@ -182,7 +182,20 @@ export default function WorldClock() {
       <div className="grid grid-cols-5 gap-4 w-full max-w-7xl">
         {/* 🔵 Local Time Column (User's Timezone, 10-min increments) */}
         <div className="bg-gray-900 p-4 rounded-lg shadow-lg w-full">
-          <h3 className="text-center text-white font-bold mb-4">Local Time ({userLocalTimezone})</h3>
+          <div className="text-center text-white mb-4">
+            <h3 className="font-bold">Local Time</h3>
+            <div className="text-sm text-gray-400">
+              {userLocalTimezone}
+              {isTimezoneDST(userLocalTimezone) && (
+                <span className="ml-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded">DST</span>
+              )}
+            </div>
+            {getDSTTransitions(userLocalTimezone) && (
+              <div className="text-xs text-gray-400 mt-1">
+                DST: {getDSTTransitions(userLocalTimezone)?.start} - {getDSTTransitions(userLocalTimezone)?.end}
+              </div>
+            )}
+          </div>
           <div ref={localColumnRef} className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {localTimeSlots.map((time) => {
               const zonedTime = toZonedTime(time, userLocalTimezone);
@@ -203,50 +216,71 @@ export default function WorldClock() {
         </div>
 
         {/* 🌍 Other Timezone Columns */}
-        {selectedTimezones.map((tz, idx) => (
-          <div key={idx} className="bg-gray-800 p-4 rounded-lg shadow-lg w-full">
-            <TimezoneSelect
-              options={timezones}
-              value={tz}
-              onChange={(val) => {
-                if (val) {
-                  const newZones = [...selectedTimezones];
-                  newZones[idx] = val;
-                  setSelectedTimezones(newZones);
-                }
-              }}
-              className="mb-4"
-              styles={selectStyles}
-              isSearchable
-              placeholder="Select timezone..."
-              noOptionsMessage={() => "No timezones found"}
-            />
-            <div ref={columnRefs[idx]} className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              {timeSlots.map((time) => {
-                const zonedTime = toZonedTime(time, tz.value);
-                const formattedTime = format(zonedTime, "MMM d, hh:mm a");
-                const isHighlighted = highlightedTime && 
-                  format(toZonedTime(time, tz.value), "MMM d, hh:mm a") === 
-                  format(toZonedTime(highlightedTime, tz.value), "MMM d, hh:mm a");
-                const isLocalTime = localTime && 
-                  format(zonedTime, "MMM d, hh:mm a") === 
-                  format(toZonedTime(roundToNearestIncrement(localTime, 30), tz.value), "MMM d, hh:mm a");
-
-                return (
-                  <div 
-                    key={formattedTime} 
-                    className={`p-2 text-center cursor-pointer ${
-                      isHighlighted ? "bg-pink-500 text-white font-bold highlighted" : ""
-                    } ${isLocalTime ? "bg-blue-500 text-white font-bold" : ""}`} 
-                    onClick={() => handleTimeSelection(time)}
-                  >
-                    {formattedTime}
+        {selectedTimezones.map((tz, idx) => {
+          const transitions = getDSTTransitions(tz.value);
+          const isDST = isTimezoneDST(tz.value);
+          
+          return (
+            <div key={idx} className="bg-gray-800 p-4 rounded-lg shadow-lg w-full">
+              <div className="mb-4">
+                <TimezoneSelect
+                  options={timezones}
+                  value={tz}
+                  onChange={(val) => {
+                    if (val) {
+                      const newZones = [...selectedTimezones];
+                      newZones[idx] = val;
+                      setSelectedTimezones(newZones);
+                    }
+                  }}
+                  className="mb-2"
+                  styles={selectStyles}
+                  isSearchable
+                  placeholder="Select timezone..."
+                  noOptionsMessage={() => "No timezones found"}
+                />
+                {transitions && (
+                  <div className="text-xs text-center text-gray-400">
+                    DST: {transitions.start} - {transitions.end}
                   </div>
-                );
-              })}
+                )}
+              </div>
+              <div ref={columnRefs[idx]} className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {timeSlots.map((time) => {
+                  const zonedTime = toZonedTime(time, tz.value);
+                  const formattedTime = format(zonedTime, "MMM d, hh:mm a");
+                  const isHighlighted = highlightedTime && 
+                    format(toZonedTime(time, tz.value), "MMM d, hh:mm a") === 
+                    format(toZonedTime(highlightedTime, tz.value), "MMM d, hh:mm a");
+                  const isLocalTime = localTime && 
+                    format(zonedTime, "MMM d, hh:mm a") === 
+                    format(toZonedTime(roundToNearestIncrement(localTime, 30), tz.value), "MMM d, hh:mm a");
+
+                  // Check if this time is during a DST transition
+                  const timeString = format(zonedTime, "MMM d");
+                  const isDSTTransition = transitions && (timeString === transitions.start || timeString === transitions.end);
+
+                  return (
+                    <div 
+                      key={formattedTime} 
+                      className={`p-2 text-center cursor-pointer relative ${
+                        isHighlighted ? "bg-pink-500 text-white font-bold highlighted" : ""
+                      } ${isLocalTime ? "bg-blue-500 text-white font-bold" : ""}`}
+                      onClick={() => handleTimeSelection(time)}
+                    >
+                      {formattedTime}
+                      {isDSTTransition && (
+                        <div className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full" 
+                             title={`DST ${timeString === transitions.start ? 'Starts' : 'Ends'}`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
