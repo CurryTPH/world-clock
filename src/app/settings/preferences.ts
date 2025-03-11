@@ -18,6 +18,14 @@ export interface UserPreferences {
   backToBackMeetings: boolean;
   minimumBreakBetweenMeetings: number; // in minutes
   maxMeetingsPerDay: number;
+  analytics: {
+    enableProductivityTracking: boolean;
+    showTeamMetrics: boolean;
+    activityTrackingInterval: number; // in minutes
+    retentionPeriod: number; // in days
+    notifyProductivityInsights: boolean;
+    teamTimezonesOfInterest: string[];
+  };
 }
 
 export const defaultPreferences: UserPreferences = {
@@ -39,5 +47,13 @@ export const defaultPreferences: UserPreferences = {
   },
   backToBackMeetings: false,
   minimumBreakBetweenMeetings: 15,
-  maxMeetingsPerDay: 5
+  maxMeetingsPerDay: 5,
+  analytics: {
+    enableProductivityTracking: true,
+    showTeamMetrics: true,
+    activityTrackingInterval: 30,
+    retentionPeriod: 90,
+    notifyProductivityInsights: true,
+    teamTimezonesOfInterest: []
+  }
 }; 

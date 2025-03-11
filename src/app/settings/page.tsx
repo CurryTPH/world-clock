@@ -7,28 +7,15 @@ export default function SettingsPage() {
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
 
   return (
-    <div className="max-w-3xl mx-auto py-4 px-4 sm:px-6">
+    <div className="max-w-3xl mx-auto py-4 px-4">
       <h1 className="text-2xl font-semibold mb-6">Settings</h1>
-      
-      {/* AI Scheduler Section */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-lg font-semibold">AI Scheduler</h2>
-          <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">Beta</span>
-        </div>
-        <p className="text-sm text-muted-foreground mb-6">Configure your AI scheduling assistant preferences</p>
-        
-        <div className="border rounded-lg divide-y divide-border">
-          {/* Working Hours */}
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h3 className="text-sm font-medium">Working Hours</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Set your regular working hours</p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-2">
+      <div className="divide-y divide-border">
+        {/* Working Hours */}
+        <div className="py-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-medium">Working Hours</h2>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
                 <input
                   type="time"
                   value={preferences.workingHours.start}
@@ -36,7 +23,7 @@ export default function SettingsPage() {
                     ...preferences,
                     workingHours: { ...preferences.workingHours, start: e.target.value }
                   })}
-                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <span className="text-sm text-muted-foreground">to</span>
                 <input
@@ -46,22 +33,19 @@ export default function SettingsPage() {
                     ...preferences,
                     workingHours: { ...preferences.workingHours, end: e.target.value }
                   })}
-                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Preferred Meeting Times */}
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h3 className="text-sm font-medium">Preferred Meeting Times</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">When you prefer to have meetings scheduled</p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-2">
+        {/* Preferred Meeting Times */}
+        <div className="py-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-medium">Preferred Meeting Times</h2>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
                 <input
                   type="time"
                   value={preferences.preferredMeetingTimes.start}
@@ -69,7 +53,7 @@ export default function SettingsPage() {
                     ...preferences,
                     preferredMeetingTimes: { ...preferences.preferredMeetingTimes, start: e.target.value }
                   })}
-                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <span className="text-sm text-muted-foreground">to</span>
                 <input
@@ -79,22 +63,19 @@ export default function SettingsPage() {
                     ...preferences,
                     preferredMeetingTimes: { ...preferences.preferredMeetingTimes, end: e.target.value }
                   })}
-                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Focus Time */}
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h3 className="text-sm font-medium">Focus Time</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Block out time for focused work</p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-2">
+        {/* Focus Time */}
+        <div className="py-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-medium">Focus Time</h2>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
                 <input
                   type="time"
                   value={preferences.focusTime.start}
@@ -102,7 +83,7 @@ export default function SettingsPage() {
                     ...preferences,
                     focusTime: { ...preferences.focusTime, start: e.target.value }
                   })}
-                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <span className="text-sm text-muted-foreground">to</span>
                 <input
@@ -112,22 +93,19 @@ export default function SettingsPage() {
                     ...preferences,
                     focusTime: { ...preferences.focusTime, end: e.target.value }
                   })}
-                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Lunch Time */}
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h3 className="text-sm font-medium">Lunch Time</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Set your preferred lunch break</p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-2">
+        {/* Lunch Time */}
+        <div className="py-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-medium">Lunch Time</h2>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
                 <input
                   type="time"
                   value={preferences.lunchTime.start}
@@ -135,7 +113,7 @@ export default function SettingsPage() {
                     ...preferences,
                     lunchTime: { ...preferences.lunchTime, start: e.target.value }
                   })}
-                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <span className="text-sm text-muted-foreground">to</span>
                 <input
@@ -145,79 +123,213 @@ export default function SettingsPage() {
                     ...preferences,
                     lunchTime: { ...preferences.lunchTime, end: e.target.value }
                   })}
-                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-32 px-2 py-1 text-sm bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Meeting Rules */}
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h3 className="text-sm font-medium">Meeting Rules</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Configure meeting scheduling rules</p>
-              </div>
+        {/* Meeting Preferences */}
+        <div className="py-4">
+          <h2 className="text-base font-medium mb-4">Meeting Preferences</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-sm">Allow back-to-back meetings</label>
+              <input
+                type="checkbox"
+                checked={preferences.backToBackMeetings}
+                onChange={(e) => setPreferences({
+                  ...preferences,
+                  backToBackMeetings: e.target.checked
+                })}
+                className="h-4 w-4 rounded border-input bg-background text-primary focus:ring-1 focus:ring-primary"
+              />
             </div>
-            <div className="space-y-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={preferences.backToBackMeetings}
-                  onChange={(e) => setPreferences({
-                    ...preferences,
-                    backToBackMeetings: e.target.checked
-                  })}
-                  className="h-4 w-4 rounded border-input bg-background text-primary focus:ring-1 focus:ring-primary"
-                />
-                <span className="text-sm">Allow back-to-back meetings</span>
+            <div className="flex items-center justify-between">
+              <label className="text-sm">
+                Minimum break between meetings
               </label>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm mb-1">
-                    Minimum break between meetings
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      value={preferences.minimumBreakBetweenMeetings}
-                      onChange={(e) => setPreferences({
-                        ...preferences,
-                        minimumBreakBetweenMeetings: parseInt(e.target.value)
-                      })}
-                      className="w-20 px-2 py-1 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                    <span className="text-sm text-muted-foreground">minutes</span>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">
-                    Maximum meetings per day
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={preferences.maxMeetingsPerDay}
-                    onChange={(e) => setPreferences({
-                      ...preferences,
-                      maxMeetingsPerDay: parseInt(e.target.value)
-                    })}
-                    className="w-20 px-2 py-1 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-              </div>
+              <input
+                type="number"
+                min="0"
+                value={preferences.minimumBreakBetweenMeetings}
+                onChange={(e) => setPreferences({
+                  ...preferences,
+                  minimumBreakBetweenMeetings: parseInt(e.target.value)
+                })}
+                className="w-20 px-2 py-1 text-sm bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm">
+                Maximum meetings per day
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={preferences.maxMeetingsPerDay}
+                onChange={(e) => setPreferences({
+                  ...preferences,
+                  maxMeetingsPerDay: parseInt(e.target.value)
+                })}
+                className="w-20 px-2 py-1 text-sm bg-background border border-input rounded focus:outline-none focus:ring-1 focus:ring-primary"
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Placeholder for future sections */}
-      <div className="opacity-50">
-        <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-lg font-semibold">Display & Appearance</h2>
-          <span className="px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded-full">Coming soon</span>
+      {/* Analytics Settings Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4">Global Workforce Analytics Settings</h2>
+        <div className="space-y-4 bg-gray-800/50 p-6 rounded-lg border border-gray-700">
+          <div className="flex items-center justify-between">
+            <label className="flex items-center space-x-2">
+              <span>Enable Productivity Tracking</span>
+              <input
+                type="checkbox"
+                checked={preferences.analytics.enableProductivityTracking}
+                onChange={(e) => setPreferences({
+                  ...preferences,
+                  analytics: {
+                    ...preferences.analytics,
+                    enableProductivityTracking: e.target.checked
+                  }
+                })}
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="flex items-center space-x-2">
+              <span>Show Team Metrics</span>
+              <input
+                type="checkbox"
+                checked={preferences.analytics.showTeamMetrics}
+                onChange={(e) => setPreferences({
+                  ...preferences,
+                  analytics: {
+                    ...preferences.analytics,
+                    showTeamMetrics: e.target.checked
+                  }
+                })}
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="flex items-center space-x-2">
+              <span>Notify Productivity Insights</span>
+              <input
+                type="checkbox"
+                checked={preferences.analytics.notifyProductivityInsights}
+                onChange={(e) => setPreferences({
+                  ...preferences,
+                  analytics: {
+                    ...preferences.analytics,
+                    notifyProductivityInsights: e.target.checked
+                  }
+                })}
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="flex flex-col">
+              <span className="mb-1">Activity Tracking Interval (minutes)</span>
+              <input
+                type="number"
+                min="5"
+                max="120"
+                value={preferences.analytics.activityTrackingInterval}
+                onChange={(e) => setPreferences({
+                  ...preferences,
+                  analytics: {
+                    ...preferences.analytics,
+                    activityTrackingInterval: parseInt(e.target.value)
+                  }
+                })}
+                className="form-input px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="flex flex-col">
+              <span className="mb-1">Data Retention Period (days)</span>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={preferences.analytics.retentionPeriod}
+                onChange={(e) => setPreferences({
+                  ...preferences,
+                  analytics: {
+                    ...preferences.analytics,
+                    retentionPeriod: parseInt(e.target.value)
+                  }
+                })}
+                className="form-input px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </label>
+          </div>
+
+          <div className="flex flex-col">
+            <label className="mb-2">Team Timezones of Interest</label>
+            <div className="flex flex-wrap gap-2">
+              {preferences.analytics.teamTimezonesOfInterest.map((timezone, index) => (
+                <div
+                  key={index}
+                  className="flex items-center bg-gray-700 px-3 py-1 rounded-full"
+                >
+                  <span>{timezone}</span>
+                  <button
+                    onClick={() => {
+                      const newTimezones = [...preferences.analytics.teamTimezonesOfInterest];
+                      newTimezones.splice(index, 1);
+                      setPreferences({
+                        ...preferences,
+                        analytics: {
+                          ...preferences.analytics,
+                          teamTimezonesOfInterest: newTimezones
+                        }
+                      });
+                    }}
+                    className="ml-2 text-gray-400 hover:text-gray-200"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  const timezone = prompt('Enter timezone (e.g., America/New_York):');
+                  if (timezone && !preferences.analytics.teamTimezonesOfInterest.includes(timezone)) {
+                    setPreferences({
+                      ...preferences,
+                      analytics: {
+                        ...preferences.analytics,
+                        teamTimezonesOfInterest: [...preferences.analytics.teamTimezonesOfInterest, timezone]
+                      }
+                    });
+                  }
+                }}
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-full text-sm"
+              >
+                Add Timezone
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
+      
+      {/* Save Button */}
+      <div className="mt-8">
+        <button className="px-4 py-2 bg-primary text-white rounded-md">Save</button>
       </div>
     </div>
   );

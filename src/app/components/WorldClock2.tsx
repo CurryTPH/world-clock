@@ -75,9 +75,8 @@ const generateTimeSlots = (interval: number, baseDate: Date = new Date()): Date[
 export default function WorldClock2() {
   const userLocalTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   
-  const [timezones] = useState<TimezoneOption[]>([
-    { value: userLocalTimezone || "UTC", label: userLocalTimezone || "UTC" }
-  ]);
+  // Use commonTimezones instead of just local timezone
+  const timezones = commonTimezones;
   const [mounted, setMounted] = useState(false);
   const [localTime, setLocalTime] = useState<Date | null>(null);
   const [localTimeSlots, setLocalTimeSlots] = useState<Date[]>([]);

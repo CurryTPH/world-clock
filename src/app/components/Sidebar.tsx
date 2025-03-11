@@ -47,16 +47,26 @@ const Sidebar = () => {
           World Clock 2
         </Link>
         <Link 
-          href="/ai-scheduler" 
+          href="/world-clock-3" 
           className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
-            isActive('/ai-scheduler') 
+            isActive('/world-clock-3') 
               ? 'bg-primary-600 text-white' 
               : 'text-gray-300 hover:bg-gray-750 hover:text-white'
           }`}
-          aria-current={isActive('/ai-scheduler') ? 'page' : undefined}
+          aria-current={isActive('/world-clock-3') ? 'page' : undefined}
         >
-          <span className="flex-1">AI Scheduler</span>
-          <span className="px-1.5 py-0.5 text-xs bg-primary-500/20 text-primary-400 rounded-full">Beta</span>
+          World Clock 3
+        </Link>
+        <Link 
+          href="/guides" 
+          className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
+            isActive('/guides') 
+              ? 'bg-primary-600 text-white' 
+              : 'text-gray-300 hover:bg-gray-750 hover:text-white'
+          }`}
+          aria-current={isActive('/guides') ? 'page' : undefined}
+        >
+          Guides
         </Link>
         <Link 
           href="/settings" 

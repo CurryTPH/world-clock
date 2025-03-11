@@ -3,7 +3,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import Sidebar from "./components/Sidebar";
-import DarkModeToggle from "./components/DarkModeToggle";
 
 export const metadata = {
   title: 'World Clock Application',
@@ -34,9 +33,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div>
                 <h1 className="text-xl font-semibold">World Clock Application</h1>
                 <p className="text-gray-400 text-sm">Manage time across different timezones</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <DarkModeToggle />
               </div>
             </header>
             <div className="container mx-auto px-4 py-6">

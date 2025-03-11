@@ -10,10 +10,56 @@ interface Notification {
   isRead: boolean;
   type: 'tutorial' | 'alert' | 'info';
   details: string;
-  category?: 'basic' | 'ai-scheduling';
+  category?: 'basic' | 'ai-scheduling' | 'analytics';
 }
 
 const tutorialNotifications: Notification[] = [
+  // Analytics tutorials
+  {
+    id: 'analytics-overview',
+    message: 'Global Workforce Analytics',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'analytics',
+    details: 'Welcome to Global Workforce Analytics! This powerful feature helps you understand and optimize your team\'s productivity across different time zones. The analytics dashboard provides real-time insights into work patterns and collaboration efficiency.'
+  },
+  {
+    id: 'productivity-heatmap',
+    message: 'Understanding the Productivity Heat Map',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'analytics',
+    details: 'The heat map visualization shows activity levels across a 24-hour period. Darker colors indicate higher activity levels. Use this to identify peak productivity periods and potential coverage gaps in your global team.'
+  },
+  {
+    id: 'efficiency-metrics',
+    message: 'Work Pattern & Efficiency Metrics',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'analytics',
+    details: 'Track key performance indicators like project completion improvement and collaboration efficiency. These metrics help you measure the impact of your timezone management strategies.'
+  },
+  {
+    id: 'ai-recommendations',
+    message: 'AI-Driven Insights',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'analytics',
+    details: 'Our AI system analyzes work patterns and provides actionable recommendations to improve team coordination. Look for warning signs (⚠️) that indicate potential issues and insights (💡) for optimization opportunities.'
+  },
+  {
+    id: 'data-interpretation',
+    message: 'Interpreting Analytics Data',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'analytics',
+    details: 'The analytics dashboard updates in real-time as your team works. Use this data to make informed decisions about scheduling, hiring in new time zones, or adjusting work hours to improve global collaboration.'
+  },
   // Basic functionality tutorials
   {
     id: 'dst-indicator',
@@ -138,15 +184,17 @@ const tutorialNotifications: Notification[] = [
 export default function NotificationButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(tutorialNotifications);
-  const [selectedCategory, setSelectedCategory] = useState<'basic' | 'ai-scheduling'>('basic');
+  const [selectedCategory, setSelectedCategory] = useState<'basic' | 'ai-scheduling' | 'analytics'>('basic');
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
   
   const basicTutorials = notifications.filter(n => n.category === 'basic');
   const aiTutorials = notifications.filter(n => n.category === 'ai-scheduling');
+  const analyticsTutorials = notifications.filter(n => n.category === 'analytics');
   
   const basicProgress = (basicTutorials.filter(n => n.isRead).length / basicTutorials.length) * 100;
   const aiProgress = (aiTutorials.filter(n => n.isRead).length / aiTutorials.length) * 100;
+  const analyticsProgress = (analyticsTutorials.filter(n => n.isRead).length / analyticsTutorials.length) * 100;
 
   const handleNotificationClick = (id: string) => {
     setNotifications(prev => prev.map(n => 
@@ -199,6 +247,22 @@ export default function NotificationButton() {
                   <div 
                     className="bg-green-500 h-1 rounded-full transition-all duration-500"
                     style={{ width: `${aiProgress}%` }}
+                  />
+                </div>
+              </button>
+              <button
+                onClick={() => setSelectedCategory('analytics')}
+                className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                  selectedCategory === 'analytics'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                Analytics
+                <div className="w-full bg-gray-600 rounded-full h-1 mt-2">
+                  <div 
+                    className="bg-green-500 h-1 rounded-full transition-all duration-500"
+                    style={{ width: `${analyticsProgress}%` }}
                   />
                 </div>
               </button>
