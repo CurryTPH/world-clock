@@ -15,10 +15,10 @@ export interface CalendarIntegration extends IntegrationStatus {
 export interface CalendarEvent {
   id: string;
   title: string;
-  start: string;
-  end: string;
-  meetingLink?: string;
-  attendees?: string[];
+  start: Date;
+  end: Date;
+  calendar: string;
+  link?: string;
 }
 
 export interface CommunicationIntegration extends IntegrationStatus {
@@ -100,57 +100,74 @@ export const getMockCalendarEvents = (): CalendarEvent[] => {
     {
       id: '1',
       title: 'Team Stand-up',
-      start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 0).toISOString(),
-      end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 30).toISOString(),
-      meetingLink: 'https://zoom.us/j/123456789',
+      start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 0),
+      end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 30),
+      calendar: 'outlook',
+      link: 'https://zoom.us/j/123456789',
     },
     {
       id: '2',
       title: 'Product Review',
-      start: new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 14, 0).toISOString(),
-      end: new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 15, 0).toISOString(),
-      meetingLink: 'https://teams.microsoft.com/l/meetup-join/123',
+      start: new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 14, 0),
+      end: new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 15, 0),
+      calendar: 'teams',
+      link: 'https://teams.microsoft.com/l/meetup-join/123',
     },
   ];
 };
 
 // Mock data generators
 export function generateMockCalendarEvents(calendar: string, count: number = 5): CalendarEvent[] {
-  const now = new Date();
   const events: CalendarEvent[] = [];
+  const now = new Date();
+  const startOfDay = new Date(now);
+  startOfDay.setHours(8, 0, 0, 0);
+  
+  const eventTitles = [
+    'Team Standup',
+    'Product Review',
+    'Client Meeting',
+    'Design Workshop',
+    'Sprint Planning',
+    'Retrospective',
+    '1:1 with Manager',
+    'Code Review',
+    'Project Kickoff',
+    'Quarterly Planning'
+  ];
   
   for (let i = 0; i < count; i++) {
-    const startHour = Math.floor(Math.random() * 8) + 9; // 9 AM to 5 PM
-    const startDate = new Date(now);
-    startDate.setHours(startHour, 0, 0, 0);
+    // Random start time between 8 AM and 5 PM
+    const startHour = 8 + Math.floor(Math.random() * 9);
+    const startMinute = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, or 45
     
-    const endDate = new Date(startDate);
-    endDate.setMinutes(endDate.getMinutes() + (Math.floor(Math.random() * 4) + 1) * 30); // 30 to 120 minutes
+    const start = new Date(startOfDay);
+    start.setHours(startHour, startMinute, 0, 0);
     
-    const hasMeetingLink = Math.random() > 0.3;
+    // Random duration between 30 and 90 minutes
+    const durationMinutes = [30, 45, 60, 90][Math.floor(Math.random() * 4)];
+    const end = new Date(start);
+    end.setMinutes(end.getMinutes() + durationMinutes);
+    
+    // Random title
+    const title = eventTitles[Math.floor(Math.random() * eventTitles.length)];
+    
+    // 50% chance of having a meeting link
+    const hasLink = Math.random() > 0.5;
+    const link = hasLink ? `https://meet.example.com/${Math.random().toString(36).substring(2, 8)}` : undefined;
     
     events.push({
-      id: `event-${calendar}-${i}`,
-      title: [
-        'Team Standup',
-        'Product Review',
-        'Client Meeting',
-        'Design Workshop',
-        'Sprint Planning',
-        'Retrospective',
-        '1:1 with Manager',
-        'Code Review'
-      ][Math.floor(Math.random() * 8)],
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-      meetingLink: hasMeetingLink ? `https://meet.example.com/${Math.random().toString(36).substring(2, 8)}` : undefined,
+      id: `cal-${calendar}-${i}`,
+      title,
+      start,
+      end,
+      calendar,
+      link
     });
   }
   
   // Sort by start time
-  events.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-  
-  return events;
+  return events.sort((a, b) => a.start.getTime() - b.start.getTime());
 }
 
 // API simulation functions
@@ -333,4 +350,73 @@ export const unifiedServices = {
     
     return { success: false, error: 'Command not recognized' };
   },
-}; 
+};
+
+// Notification interface
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'error' | 'success';
+  source: string;
+  timestamp: Date;
+  read: boolean;
+}
+
+// Integration state interface (simplified version of what's in the context)
+interface IntegrationState {
+  calendars: Record<string, { connected: boolean }>;
+  communications: Record<string, { connected: boolean }>;
+  videoServices: Record<string, { connected: boolean }>;
+  hrSystems: Record<string, { connected: boolean }>;
+}
+
+// Generate mock notifications based on integration state
+export function generateMockNotifications(state: IntegrationState): Notification[] {
+  const notifications: Notification[] = [];
+  const now = new Date();
+  
+  // Add notifications for connected calendars
+  Object.entries(state.calendars).forEach(([name, calendar]) => {
+    if (calendar.connected) {
+      notifications.push({
+        id: `cal-${name}-${Date.now()}`,
+        title: `${name} Calendar Connected`,
+        message: `Your ${name} calendar is now synced with World Clock.`,
+        type: 'success',
+        source: 'calendar',
+        timestamp: new Date(now.getTime() - Math.random() * 3600000), // Random time in the last hour
+        read: Math.random() > 0.5 // 50% chance of being read
+      });
+    }
+  });
+  
+  // Add notifications for connected communications
+  Object.entries(state.communications).forEach(([name, comm]) => {
+    if (comm.connected) {
+      notifications.push({
+        id: `comm-${name}-${Date.now()}`,
+        title: `${name} Integration Active`,
+        message: `Your ${name} integration is active and receiving updates.`,
+        type: 'info',
+        source: 'communication',
+        timestamp: new Date(now.getTime() - Math.random() * 7200000), // Random time in the last 2 hours
+        read: Math.random() > 0.3 // 70% chance of being read
+      });
+    }
+  });
+  
+  // Add system notifications
+  notifications.push({
+    id: `system-${Date.now()}`,
+    title: 'System Update',
+    message: 'World Clock has been updated to the latest version.',
+    type: 'info',
+    source: 'system',
+    timestamp: new Date(now.getTime() - 86400000), // 1 day ago
+    read: true
+  });
+  
+  // Sort by timestamp (newest first)
+  return notifications.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+} 

@@ -81,7 +81,7 @@ export default function GuidesPage() {
                 <div>
                   <h4 className="text-lg font-medium text-blue-400 mb-2">Supported Calendar Services</h4>
                   <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li><span className="font-medium">Outlook Calendar:</span> Sync with Microsoft's calendar service</li>
+                    <li><span className="font-medium">Outlook Calendar:</span> Sync with Microsoft&apos;s calendar service</li>
                     <li><span className="font-medium">Google Calendar:</span> Connect to Google Workspace calendars</li>
                     <li><span className="font-medium">Apple Calendar:</span> Integrate with iCloud calendar services</li>
                   </ul>
@@ -169,7 +169,7 @@ export default function GuidesPage() {
                   <ol className="list-decimal list-inside space-y-2 text-gray-300 ml-4">
                     <li>Connect your preferred video service in the Integration Controls panel</li>
                     <li>Select the service from the dropdown in the Video Meetings section</li>
-                    <li>Click "Generate Link" to create a new meeting</li>
+                    <li>Click &quot;Generate Link&quot; to create a new meeting</li>
                     <li>The link will be created and can be copied or shared directly</li>
                   </ol>
                 </div>
@@ -191,8 +191,8 @@ export default function GuidesPage() {
                 <div>
                   <h4 className="text-lg font-medium text-green-400 mb-2">Available Integrations</h4>
                   <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li><span className="font-medium">Company Holidays:</span> Sync with your organization's holiday calendar</li>
-                    <li><span className="font-medium">PTO System:</span> View team members' time-off schedules</li>
+                    <li><span className="font-medium">Company Holidays:</span> Sync with your organization&apos;s holiday calendar</li>
+                    <li><span className="font-medium">PTO System:</span> View team members&apos; time-off schedules</li>
                   </ul>
                 </div>
                 
@@ -200,7 +200,7 @@ export default function GuidesPage() {
                   <h4 className="text-lg font-medium text-green-400 mb-2">Benefits</h4>
                   <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
                     <li>Avoid scheduling meetings during company holidays</li>
-                    <li>Respect team members' time off when planning</li>
+                    <li>Respect team members&apos; time off when planning</li>
                     <li>Improve work-life balance across global teams</li>
                     <li>Enhance scheduling efficiency with awareness of availability</li>
                   </ul>
@@ -262,7 +262,7 @@ export default function GuidesPage() {
                     <li><span className="font-medium">Connection Status:</span> Overview of all connected services</li>
                     <li><span className="font-medium">Sync Health:</span> Status of data synchronization</li>
                     <li><span className="font-medium">Usage Metrics:</span> Statistics on meetings scheduled, notifications sent, and commands executed</li>
-                    <li><span className="font-medium">Timezone Coverage:</span> Analysis of your team's global distribution</li>
+                    <li><span className="font-medium">Timezone Coverage:</span> Analysis of your team&apos;s global distribution</li>
                   </ul>
                 </div>
                 
@@ -270,7 +270,7 @@ export default function GuidesPage() {
                   <h4 className="text-lg font-medium text-red-400 mb-2">Benefits of Analytics</h4>
                   <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
                     <li>Identify potential issues with integrations before they affect productivity</li>
-                    <li>Understand your team's global distribution and optimize meeting times</li>
+                    <li>Understand your team&apos;s global distribution and optimize meeting times</li>
                     <li>Track usage patterns to improve workflow efficiency</li>
                     <li>Make data-driven decisions about team scheduling and communication</li>
                   </ul>
@@ -297,7 +297,7 @@ export default function GuidesPage() {
                     <li>Use the Command Center for quick actions across multiple services</li>
                     <li>Regularly check Integration Analytics to identify and resolve sync issues</li>
                     <li>Combine calendar integrations with video conferencing to streamline meeting creation</li>
-                    <li>Leverage HR system integrations to respect team members' time off and holidays</li>
+                    <li>Leverage HR system integrations to respect team members&apos; time off and holidays</li>
                   </ul>
                 </div>
                 
@@ -308,7 +308,7 @@ export default function GuidesPage() {
                     <li>For calendar sync issues, use the "sync" command in the Command Center</li>
                     <li>Clear browser cache and cookies if authentication problems persist</li>
                     <li>Check the Sync Health section in Integration Analytics for specific service issues</li>
-                    <li>Ensure you've granted all necessary permissions during the connection process</li>
+                    <li>Ensure you&apos;ve granted all necessary permissions during the connection process</li>
                   </ul>
                 </div>
               </div>
