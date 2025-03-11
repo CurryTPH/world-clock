@@ -2,24 +2,27 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
+import { BellIcon } from '@heroicons/react/24/outline';
 
 interface Notification {
   id: string;
   message: string;
   timestamp: Date;
   isRead: boolean;
-  type?: 'tutorial' | 'info';
-  link?: string;
-  details?: string;
+  type: 'tutorial' | 'alert' | 'info';
+  details: string;
+  category?: 'basic' | 'ai-scheduling';
 }
 
 const tutorialNotifications: Notification[] = [
+  // Basic functionality tutorials
   {
     id: 'dst-indicator',
     message: 'DST Indicator Guide',
     timestamp: new Date(),
     isRead: false,
     type: 'tutorial',
+    category: 'basic',
     details: 'The green "DST" badge indicates that a timezone is currently in Daylight Saving Time. This means the time is shifted forward by one hour from the standard time.'
   },
   {
@@ -28,6 +31,7 @@ const tutorialNotifications: Notification[] = [
     timestamp: new Date(),
     isRead: false,
     type: 'tutorial',
+    category: 'basic',
     details: 'Below each timezone, you\'ll see the DST transition dates showing when DST starts and ends. For example: "Mar 10 - Nov 3" means DST begins on March 10 and ends on November 3.'
   },
   {
@@ -36,6 +40,7 @@ const tutorialNotifications: Notification[] = [
     timestamp: new Date(),
     isRead: false,
     type: 'tutorial',
+    category: 'basic',
     details: 'Yellow dots appear next to times when DST transitions occur. These indicate the exact dates when clocks are adjusted forward in spring or backward in fall.'
   },
   {
@@ -44,6 +49,7 @@ const tutorialNotifications: Notification[] = [
     timestamp: new Date(),
     isRead: false,
     type: 'tutorial',
+    category: 'basic',
     details: 'Click any time to see its equivalent across all timezones. The selected time will be highlighted in pink across all columns, showing you the exact corresponding times.'
   },
   {
@@ -52,145 +58,180 @@ const tutorialNotifications: Notification[] = [
     timestamp: new Date(),
     isRead: false,
     type: 'tutorial',
+    category: 'basic',
     details: 'The blue highlighted rows show the current time in each timezone. These automatically update and stay synchronized across all columns.'
+  },
+  // AI Scheduling tutorials
+  {
+    id: 'ai-scheduling-intro',
+    message: 'AI-Powered Scheduling',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'ai-scheduling',
+    details: 'Click the "Show Scheduler" button to access our intelligent meeting scheduling assistant. It helps find optimal meeting times across different timezones while considering everyone\'s preferences and working hours. Visit the Settings page to customize your scheduling preferences.'
+  },
+  {
+    id: 'scheduling-preferences',
+    message: 'Customizing Scheduling Preferences',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'ai-scheduling',
+    details: 'Visit the Settings page to customize your scheduling preferences including working hours, preferred meeting times, focus time blocks, lunch time, and meeting frequency. These settings help the AI make better scheduling suggestions tailored to your needs.'
+  },
+  {
+    id: 'adding-participants',
+    message: 'Adding Participants',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'ai-scheduling',
+    details: 'Use the timezone selector to add participants from different timezones. Each participant starts with default working hours (9 AM - 5 PM) and preferred meeting times in their local timezone. Your preferences from the settings will be automatically applied to your schedule.'
+  },
+  {
+    id: 'ai-suggestions',
+    message: 'Understanding AI Suggestions',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'ai-scheduling',
+    details: 'The AI analyzes multiple factors to suggest the best meeting times based on your settings: working hours, preferred times, focus time protection, historical patterns, and lunch hours. Each suggestion shows a score and participant availability.'
+  },
+  {
+    id: 'availability-indicators',
+    message: 'Availability Status',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'ai-scheduling',
+    details: 'Green badges indicate preferred times for participants, blue shows available times, and red indicates unavailable times. The AI ensures suggested slots work for everyone while respecting the preferences set in your scheduling settings.'
+  },
+  {
+    id: 'focus-time',
+    message: 'Focus Time Protection',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'ai-scheduling',
+    details: 'Protect your productivity by setting focus time blocks in the scheduling settings. The AI will avoid suggesting meetings during these hours unless absolutely necessary. You can customize your focus time, default is 2-4 PM.'
+  },
+  {
+    id: 'meeting-preferences',
+    message: 'Meeting Preferences',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'ai-scheduling',
+    details: 'In the settings, you can set your maximum meetings per day, minimum break between meetings, and whether to allow back-to-back meetings. The AI uses these preferences to prevent meeting fatigue and maintain a balanced schedule.'
+  },
+  {
+    id: 'ai-learning',
+    message: 'AI Learning & Adaptation',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    category: 'ai-scheduling',
+    details: 'The AI learns from meeting patterns and your settings to improve suggestions. It considers your preferred time of day (morning/afternoon/evening) and scheduling habits. Update your preferences any time in the settings to adjust the AI\'s behavior.'
   }
 ];
 
 export default function NotificationButton() {
-  const [notifications, setNotifications] = useState<Notification[]>(tutorialNotifications);
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && 
-          buttonRef.current && 
-          !dropdownRef.current.contains(event.target as Node) &&
-          !buttonRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const [notifications, setNotifications] = useState<Notification[]>(tutorialNotifications);
+  const [selectedCategory, setSelectedCategory] = useState<'basic' | 'ai-scheduling'>('basic');
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
+  
+  const basicTutorials = notifications.filter(n => n.category === 'basic');
+  const aiTutorials = notifications.filter(n => n.category === 'ai-scheduling');
+  
+  const basicProgress = (basicTutorials.filter(n => n.isRead).length / basicTutorials.length) * 100;
+  const aiProgress = (aiTutorials.filter(n => n.isRead).length / aiTutorials.length) * 100;
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === id ? { ...notification, isRead: true } : notification
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notification => ({ ...notification, isRead: true }))
-    );
-  };
-
-  const clearAll = () => {
-    setNotifications([]);
+  const handleNotificationClick = (id: string) => {
+    setNotifications(prev => prev.map(n => 
+      n.id === id ? { ...n, isRead: true } : n
+    ));
   };
 
   return (
     <div className="relative">
       <button
-        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 rounded-full transition-all duration-300 ${
-          unreadCount > 0 
-            ? 'bg-blue-100 hover:bg-blue-200' 
-            : 'bg-gray-100 hover:bg-gray-200'
-        }`}
+        className="relative p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
       >
-        {/* Question Mark Icon for Tutorial */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className={`h-6 w-6 ${unreadCount > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-
-        {/* Notification Badge */}
+        <BellIcon className="h-6 w-6" />
         {unreadCount > 0 && (
-          <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            {unreadCount}
-          </div>
+          <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white" />
         )}
       </button>
 
-      {/* Notification Dropdown */}
       {isOpen && (
-        <div
-          ref={dropdownRef}
-          className="fixed right-4 mt-12 w-96 bg-white rounded-lg shadow-xl z-50 max-h-[80vh] overflow-y-auto"
-        >
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">DST & Timezone Guide</h3>
-              <div className="space-x-2">
-                <button
-                  onClick={markAllAsRead}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  Mark all as read
-                </button>
-                <button
-                  onClick={clearAll}
-                  className="text-sm text-red-600 hover:text-red-800"
-                >
-                  Clear all
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="divide-y divide-gray-200">
-            {notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
-                No notifications
-              </div>
-            ) : (
-              notifications.map(notification => (
-                <div
-                  key={notification.id}
-                  onClick={() => markAsRead(notification.id)}
-                  className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-200 ${
-                    !notification.isRead ? 'bg-blue-50' : ''
-                  }`}
-                >
-                  <div className="flex justify-between">
-                    <p className={`${!notification.isRead ? 'font-semibold' : ''} text-lg`}>
-                      {notification.message}
-                    </p>
-                    {!notification.isRead && (
-                      <span className="h-2 w-2 bg-blue-600 rounded-full mt-2"></span>
-                    )}
-                  </div>
-                  {notification.details && (
-                    <p className="text-gray-600 mt-2 text-sm leading-relaxed">
-                      {notification.details}
-                    </p>
-                  )}
-                  <p className="text-sm text-gray-400 mt-2">
-                    {format(notification.timestamp, 'MMM d, h:mm a')}
-                  </p>
+        <div className="absolute right-0 mt-2 w-96 bg-gray-800 rounded-lg shadow-lg z-50">
+          <div className="p-4">
+            <div className="flex gap-4 mb-4">
+              <button
+                onClick={() => setSelectedCategory('basic')}
+                className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                  selectedCategory === 'basic' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                Basic Features
+                <div className="w-full bg-gray-600 rounded-full h-1 mt-2">
+                  <div 
+                    className="bg-green-500 h-1 rounded-full transition-all duration-500"
+                    style={{ width: `${basicProgress}%` }}
+                  />
                 </div>
-              ))
-            )}
+              </button>
+              <button
+                onClick={() => setSelectedCategory('ai-scheduling')}
+                className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                  selectedCategory === 'ai-scheduling'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                AI Scheduling
+                <div className="w-full bg-gray-600 rounded-full h-1 mt-2">
+                  <div 
+                    className="bg-green-500 h-1 rounded-full transition-all duration-500"
+                    style={{ width: `${aiProgress}%` }}
+                  />
+                </div>
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {notifications
+                .filter(n => n.category === selectedCategory)
+                .map((notification, index) => (
+                  <div
+                    key={notification.id}
+                    className={`p-4 rounded-lg transition-colors ${
+                      notification.isRead 
+                        ? 'bg-gray-700 text-gray-300' 
+                        : 'bg-gray-600 text-white'
+                    }`}
+                    onClick={() => handleNotificationClick(notification.id)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium">
+                        {index + 1}. {notification.message}
+                      </h3>
+                      {!notification.isRead && (
+                        <span className="bg-blue-500 text-xs px-2 py-1 rounded-full">
+                          New
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm">{notification.details}</p>
+                  </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

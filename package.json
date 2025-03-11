@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.0.12",
     "@vercel/speed-insights": "^1.2.0",
     "date-fns": "^4.1.0",

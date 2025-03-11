@@ -5,9 +5,30 @@ import { toZonedTime } from "date-fns-tz";
 import TimezoneSelect, { selectStyles, commonTimezones, isTimezoneDST, getDSTTransitions } from './TimezoneSelect';
 import React from "react";
 import NotificationButton from './NotificationButton';
+import { AIScheduler } from './AIScheduler';
+import { UserPreferences, defaultPreferences } from '../settings/page';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 // Use the common timezones from the TimezoneSelect component
 const timezones = commonTimezones;
+
+interface Participant {
+  name: string;
+  timezone: string;
+  workingHours: {
+    start: string;
+    end: string;
+  };
+  preferredTimes?: {
+    start: string;
+    end: string;
+  };
+  focusTime?: {
+    start: string;
+    end: string;
+  };
+  meetingHistory: Date[];
+}
 
 // Move timezone resolution to useEffect
 const roundToNearestIncrement = (date: Date, increment: number) => {
@@ -18,9 +39,9 @@ const roundToNearestIncrement = (date: Date, increment: number) => {
     : set(date, { minutes: minutes + (increment - remainder), seconds: 0 });
 };
 
-const generateTimeSlots = (interval: number, baseDate: Date = new Date()) => {
-  const timeStrings = new Set(); // Track formatted times to prevent duplicates
-  const result = [];
+const generateTimeSlots = (interval: number, baseDate: Date = new Date()): Date[] => {
+  const timeStrings = new Set<string>(); // Track formatted times to prevent duplicates
+  const result: Date[] = [];
   
   // Generate slots for previous, current, and next day
   for (let dayOffset = -1; dayOffset <= 1; dayOffset++) {
@@ -64,6 +85,21 @@ export default function WorldClock2() {
   const [localTimeSlots, setLocalTimeSlots] = useState<Date[]>([]);
   const [timeSlots, setTimeSlots] = useState<Date[]>([]);
 
+  // New state for AI scheduling
+  const [participants, setParticipants] = useState<Participant[]>([
+    {
+      name: "You",
+      timezone: userLocalTimezone || "UTC",
+      workingHours: { start: "09:00", end: "17:00" },
+      preferredTimes: { start: "10:00", end: "16:00" },
+      focusTime: { start: "14:00", end: "16:00" },
+      meetingHistory: []
+    }
+  ]);
+
+  const [showAIScheduler, setShowAIScheduler] = useState(false);
+  const [selectedParticipant, setSelectedParticipant] = useState<string | null>(null);
+
   // Ref hooks
   const highlightTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const localColumnRef = useRef<HTMLDivElement>(null);
@@ -76,6 +112,9 @@ export default function WorldClock2() {
 
   // Memoized values
   const columnRefs = useMemo(() => refs.current, []);
+
+  // Add new state for user preferences
+  const [userPreferences, setUserPreferences] = useState<UserPreferences>(defaultPreferences);
 
   // Callbacks
   const scrollToTime = useCallback((targetElement: Element | null) => {
@@ -183,6 +222,33 @@ export default function WorldClock2() {
     }
   }, [highlightedTime, handleTimeSelection]);
 
+  // Handle participant timezone changes
+  useEffect(() => {
+    if (userLocalTimezone) {
+      setParticipants(prev => prev.map(p => 
+        p.name === "You" ? { ...p, timezone: userLocalTimezone } : p
+      ));
+    }
+  }, [userLocalTimezone]);
+
+  // Handle adding a new participant
+  const handleAddParticipant = useCallback((timezone: string) => {
+    const newParticipant: Participant = {
+      name: `Participant ${participants.length + 1}`,
+      timezone,
+      workingHours: { start: "09:00", end: "17:00" },
+      preferredTimes: { start: "10:00", end: "16:00" },
+      meetingHistory: []
+    };
+    setParticipants(prev => [...prev, newParticipant]);
+  }, [participants.length]);
+
+  // Handle AI scheduling slot selection
+  const handleAISlotSelect = useCallback((slot: Date) => {
+    setHighlightedTime(slot);
+    scrollToCurrentTime();
+  }, [scrollToCurrentTime]);
+
   // Initialize all client-side only data
   useEffect(() => {
     setMounted(true);
@@ -237,204 +303,200 @@ export default function WorldClock2() {
 
   return (
     <div className="relative w-full">
-      {/* Notification Button */}
-      <div className="fixed top-4 right-4 z-50">
+      {/* Top Bar with Notification */}
+      <div className="fixed top-4 right-4 z-50 flex items-center space-x-4">
         <NotificationButton />
       </div>
 
       <div className="flex justify-center w-full pt-16">
-        <div 
-          className="grid grid-cols-5 gap-4 w-full max-w-7xl"
-          role="region" 
-          aria-label="World Clock Timezone Comparison"
-        >
-          {/* 🔵 Local Time Column (User's Timezone, 10-min increments) */}
-          <div className="bg-gray-900 p-4 rounded-lg shadow-lg w-full">
-            <div className="text-center text-white mb-4">
-              <h3 className="font-bold">Local Time</h3>
-              <div className="text-sm text-gray-400">
-                {userLocalTimezone}
-                {isTimezoneDST(userLocalTimezone) && (
-                  <span className="ml-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded" role="status">DST</span>
-                )}
-              </div>
-              {getDSTTransitions(userLocalTimezone) && (
-                <div className="text-xs text-gray-400 mt-1" role="note">
-                  DST: {getDSTTransitions(userLocalTimezone)?.start} - {getDSTTransitions(userLocalTimezone)?.end}
-                </div>
-              )}
+        <div className="w-full max-w-7xl space-y-6">
+          {/* AI Scheduling Controls */}
+          <div className="bg-gray-900 p-4 rounded-lg shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white font-bold text-xl">AI-Powered Scheduling</h2>
+              <button
+                onClick={() => setShowAIScheduler(!showAIScheduler)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                {showAIScheduler ? 'Hide Scheduler' : 'Show Scheduler'}
+              </button>
             </div>
-            <div 
-              ref={localColumnRef} 
-              className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-              role="listbox"
-              aria-label="Local times"
-              style={{ willChange: 'transform' }}
-            >
-              {localTimeSlots.map((time, index) => {
-                const zonedTime = toZonedTime(time, userLocalTimezone);
-                const formattedTime = format(zonedTime, "MMM d, hh:mm a");
-                const isNow = localTime && 
-                  format(zonedTime, "MMM d, hh:mm a") === format(toZonedTime(localTime, userLocalTimezone), "MMM d, hh:mm a");
-                return (
-                  <div 
-                    key={`${formattedTime}-${index}`}
-                    role="option"
-                    aria-selected={isNow}
-                    tabIndex={0}
-                    className={`p-2 text-center cursor-pointer transition-all duration-200 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isNow ? "bg-blue-500 text-white font-bold shadow-lg" : "text-gray-300"
-                    }`}
-                    onClick={() => handleTimeSelection(time)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleTimeSelection(time)}
-                  >
-                    {formattedTime}
+            
+            {showAIScheduler && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <TimezoneSelect
+                      options={timezones}
+                      onChange={(val) => val && handleAddParticipant(val.value)}
+                      placeholder="Add participant timezone..."
+                      styles={selectStyles}
+                    />
                   </div>
-                );
-              })}
-            </div>
+                </div>
+                
+                <AIScheduler
+                  participants={participants.map(p => ({
+                    ...p,
+                    workingHours: p.name === "You" ? userPreferences.workingHours : p.workingHours,
+                    preferredTimes: p.name === "You" ? userPreferences.preferredMeetingTimes : p.preferredTimes,
+                    focusTime: p.name === "You" ? userPreferences.focusTime : p.focusTime
+                  }))}
+                  duration={60}
+                  onSlotSelect={handleAISlotSelect}
+                  userPreferences={userPreferences}
+                />
+              </div>
+            )}
           </div>
 
-          {/* 🌍 Other Timezone Columns */}
-          {selectedTimezones.map((tz, idx) => {
-            const transitions = getDSTTransitions(tz.value);
-            
-            return (
-              <div 
-                key={idx} 
-                className="bg-gray-800 p-4 rounded-lg shadow-lg w-full transform transition-all duration-200 hover:shadow-xl"
-                role="region"
-                aria-label={`Timezone: ${tz.label}`}
-              >
-                <div className="mb-4">
-                  <TimezoneSelect
-                    options={timezones}
-                    value={tz}
-                    onChange={(val) => {
-                      if (val) {
-                        const newZones = [...selectedTimezones];
-                        newZones[idx] = val;
-                        setSelectedTimezones(newZones);
-                      }
-                    }}
-                    className="mb-2"
-                    styles={{
-                      ...selectStyles,
-                      control: (base) => ({
-                        ...base,
-                        backgroundColor: '#1f2937',
-                        borderColor: '#374151',
-                        color: 'white',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: '#4F46E5'
-                        }
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        backgroundColor: '#1f2937',
-                        border: '1px solid #374151'
-                      }),
-                      option: (base, state) => ({
-                        ...base,
-                        backgroundColor: state.isFocused ? '#374151' : '#1f2937',
-                        color: 'white',
-                        '&:hover': {
-                          backgroundColor: '#374151'
-                        }
-                      }),
-                      singleValue: (base) => ({
-                        ...base,
-                        color: 'white'
-                      }),
-                      input: (base) => ({
-                        ...base,
-                        color: 'white'
-                      }),
-                      dropdownIndicator: (base) => ({
-                        ...base,
-                        color: '#9ca3af',
-                        '&:hover': {
-                          color: 'white'
-                        }
-                      }),
-                      clearIndicator: (base) => ({
-                        ...base,
-                        color: '#9ca3af',
-                        '&:hover': {
-                          color: 'white'
-                        }
-                      })
-                    }}
-                    isSearchable
-                    placeholder="Select timezone..."
-                    noOptionsMessage={() => "No timezones found"}
-                  />
-                  {transitions && (
-                    <div className="text-xs text-center text-gray-400 transition-opacity duration-200 hover:text-gray-200">
-                      DST: {transitions.start} - {transitions.end}
-                    </div>
+          {/* Existing Clock Grid */}
+          <div 
+            className="grid grid-cols-5 gap-4 w-full"
+            role="region" 
+            aria-label="World Clock Timezone Comparison"
+          >
+            {/* 🔵 Local Time Column (User's Timezone, 10-min increments) */}
+            <div className="bg-gray-900 p-4 rounded-lg shadow-lg w-full">
+              <div className="text-center text-white mb-4">
+                <h3 className="font-bold">Local Time</h3>
+                <div className="text-sm text-gray-400">
+                  {userLocalTimezone}
+                  {isTimezoneDST(userLocalTimezone) && (
+                    <span className="ml-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded" role="status">DST</span>
                   )}
                 </div>
-                <div 
-                  ref={columnRefs[idx]} 
-                  className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-                  role="listbox"
-                  aria-label={`Times for ${tz.label}`}
-                  style={{ willChange: 'transform' }}
-                >
-                  {timeSlots.map((time) => {
-                    const zonedTime = toZonedTime(time, tz.value);
-                    const formattedTime = format(zonedTime, "MMM d, hh:mm a");
-                    const timeKey = `${time.getTime()}-${tz.value}`; // Create a truly unique key
-                    
-                    const isHighlighted = highlightedTime && 
-                      format(toZonedTime(time, tz.value), "MMM d, hh:mm a") === 
-                      format(toZonedTime(highlightedTime, tz.value), "MMM d, hh:mm a");
-                    const isLocalTime = localTime && 
-                      format(zonedTime, "MMM d, hh:mm a") === 
-                      format(toZonedTime(roundToNearestIncrement(localTime, 30), tz.value), "MMM d, hh:mm a");
-
-                    const timeString = format(zonedTime, "MMM d");
-                    const isDSTTransition = transitions && (timeString === transitions.start || timeString === transitions.end);
-
-                    return (
-                      <div 
-                        key={timeKey}
-                        role="option"
-                        aria-selected={isHighlighted || isLocalTime}
-                        tabIndex={0}
-                        style={{
-                          contain: 'content',
-                          height: '40px',
-                          lineHeight: '24px'
-                        }}
-                        className={`p-2 text-center cursor-pointer relative group focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          isHighlighted ? "bg-pink-500 text-white font-bold" : 
-                          isLocalTime ? "bg-blue-500 text-white font-bold" : 
-                          "text-gray-300 hover:bg-gray-700 hover:text-white"
-                        }`}
-                        onClick={() => handleTimeSelection(time)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleTimeSelection(time)}
-                      >
-                        {formattedTime}
-                        {isDSTTransition && (
-                          <div 
-                            className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full transform transition-transform duration-200 group-hover:scale-150" 
-                            title={`DST ${timeString === transitions.start ? 'Starts' : 'Ends'}`}
-                            role="status"
-                            aria-label={`DST ${timeString === transitions.start ? 'Starts' : 'Ends'}`}
-                          >
-                            <div className="absolute inset-0 bg-yellow-400 rounded-full animate-ping opacity-75"></div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                {getDSTTransitions(userLocalTimezone) && (
+                  <div className="text-xs text-gray-400 mt-1" role="note">
+                    DST: {getDSTTransitions(userLocalTimezone)?.start} - {getDSTTransitions(userLocalTimezone)?.end}
+                  </div>
+                )}
               </div>
-            );
-          })}
+              <div 
+                ref={localColumnRef} 
+                className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                role="listbox"
+                aria-label="Local times"
+                style={{ willChange: 'transform' }}
+              >
+                {localTimeSlots.map((time, index) => {
+                  const zonedTime = toZonedTime(time, userLocalTimezone);
+                  const formattedTime = format(zonedTime, "MMM d, hh:mm a");
+                  const isNow = localTime && 
+                    format(zonedTime, "MMM d, hh:mm a") === format(toZonedTime(localTime, userLocalTimezone), "MMM d, hh:mm a");
+                  return (
+                    <div 
+                      key={`${formattedTime}-${index}`}
+                      role="option"
+                      aria-selected={isNow}
+                      tabIndex={0}
+                      className={`p-2 text-center cursor-pointer transition-all duration-200 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        isNow ? "bg-blue-500 text-white font-bold shadow-lg" : "text-gray-300"
+                      }`}
+                      onClick={() => handleTimeSelection(time)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleTimeSelection(time)}
+                    >
+                      {formattedTime}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 🌍 Other Timezone Columns */}
+            {selectedTimezones.map((tz, idx) => {
+              const transitions = getDSTTransitions(tz.value);
+              
+              return (
+                <div 
+                  key={idx} 
+                  className="bg-gray-800 p-4 rounded-lg shadow-lg w-full transform transition-all duration-200 hover:shadow-xl"
+                  role="region"
+                  aria-label={`Timezone: ${tz.label}`}
+                >
+                  <div className="mb-4">
+                    <TimezoneSelect
+                      options={timezones}
+                      value={tz}
+                      onChange={(val) => {
+                        if (val) {
+                          const newZones = [...selectedTimezones];
+                          newZones[idx] = val;
+                          setSelectedTimezones(newZones);
+                        }
+                      }}
+                      className="mb-2"
+                      styles={selectStyles}
+                      isSearchable
+                      placeholder="Select timezone..."
+                      noOptionsMessage={() => "No timezones found"}
+                    />
+                    {transitions && (
+                      <div className="text-xs text-center text-gray-400 transition-opacity duration-200 hover:text-gray-200">
+                        DST: {transitions.start} - {transitions.end}
+                      </div>
+                    )}
+                  </div>
+                  <div 
+                    ref={columnRefs[idx]} 
+                    className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                    role="listbox"
+                    aria-label={`Times for ${tz.label}`}
+                    style={{ willChange: 'transform' }}
+                  >
+                    {timeSlots.map((time) => {
+                      const zonedTime = toZonedTime(time, tz.value);
+                      const formattedTime = format(zonedTime, "MMM d, hh:mm a");
+                      const timeKey = `${time.getTime()}-${tz.value}`; // Create a truly unique key
+                      
+                      const isHighlighted = highlightedTime && 
+                        format(toZonedTime(time, tz.value), "MMM d, hh:mm a") === 
+                        format(toZonedTime(highlightedTime, tz.value), "MMM d, hh:mm a");
+                      const isLocalTime = localTime && 
+                        format(zonedTime, "MMM d, hh:mm a") === 
+                        format(toZonedTime(roundToNearestIncrement(localTime, 30), tz.value), "MMM d, hh:mm a");
+
+                      const timeString = format(zonedTime, "MMM d");
+                      const isDSTTransition = transitions && (timeString === transitions.start || timeString === transitions.end);
+
+                      return (
+                        <div 
+                          key={timeKey}
+                          role="option"
+                          aria-selected={isHighlighted || isLocalTime}
+                          tabIndex={0}
+                          style={{
+                            contain: 'content',
+                            height: '40px',
+                            lineHeight: '24px'
+                          }}
+                          className={`p-2 text-center cursor-pointer relative group focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            isHighlighted ? "bg-pink-500 text-white font-bold" : 
+                            isLocalTime ? "bg-blue-500 text-white font-bold" : 
+                            "text-gray-300 hover:bg-gray-700 hover:text-white"
+                          }`}
+                          onClick={() => handleTimeSelection(time)}
+                          onKeyPress={(e) => e.key === 'Enter' && handleTimeSelection(time)}
+                        >
+                          {formattedTime}
+                          {isDSTTransition && (
+                            <div 
+                              className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full transform transition-transform duration-200 group-hover:scale-150" 
+                              title={`DST ${timeString === transitions.start ? 'Starts' : 'Ends'}`}
+                              role="status"
+                              aria-label={`DST ${timeString === transitions.start ? 'Starts' : 'Ends'}`}
+                            >
+                              <div className="absolute inset-0 bg-yellow-400 rounded-full animate-ping opacity-75"></div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
