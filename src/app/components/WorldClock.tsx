@@ -1,72 +1,23 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
-import dynamic from 'next/dynamic';
-import type { Props as SelectProps } from 'react-select';
 import { format, set } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
+import TimezoneSelect, { TimezoneOption, selectStyles, commonTimezones } from './TimezoneSelect';
 
-interface TimezoneOption {
-  value: string;
-  label: string;
+// Add this effect to preload the Select component stylesheet
+// in a higher scope outside the component
+if (typeof document !== 'undefined') {
+  const existingLink = document.querySelector('link[href*="react-select"]');
+  if (!existingLink) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/react-select@5.7.0/dist/react-select.min.css';
+    document.head.appendChild(link);
+  }
 }
 
-// Preload the Select component
-const Select = dynamic<SelectProps<TimezoneOption, false>>(() => import('react-select').then(mod => {
-  // Preload styles
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'https://cdn.jsdelivr.net/npm/react-select@5.7.0/dist/react-select.min.css';
-  document.head.appendChild(link);
-  return mod;
-}), {
-  ssr: false,
-  loading: () => (
-    <div className="h-[38px] bg-gray-700 rounded animate-pulse flex items-center px-3">
-      <div className="h-4 bg-gray-600 rounded w-24 animate-pulse"></div>
-    </div>
-  )
-});
-
-// Custom styles for Select component
-const selectStyles = {
-  control: (base: any) => ({
-    ...base,
-    background: '#374151',
-    borderColor: '#4B5563',
-    '&:hover': {
-      borderColor: '#6B7280',
-    },
-    boxShadow: 'none',
-  }),
-  menu: (base: any) => ({
-    ...base,
-    background: '#374151',
-    border: '1px solid #4B5563',
-  }),
-  option: (base: any, state: any) => ({
-    ...base,
-    background: state.isFocused ? '#4B5563' : '#374151',
-    '&:hover': {
-      background: '#4B5563',
-    },
-  }),
-  singleValue: (base: any) => ({
-    ...base,
-    color: 'white',
-  }),
-  input: (base: any) => ({
-    ...base,
-    color: 'white',
-  }),
-};
-
-const timezones: TimezoneOption[] = [
-  { value: "UTC", label: "UTC" },
-  { value: "America/Chicago", label: "Chicago (CST/CDT)" },
-  { value: "America/New_York", label: "New York (EST/EDT)" },
-  { value: "Europe/London", label: "London (GMT/BST)" },
-  { value: "Asia/Tokyo", label: "Tokyo (JST)" },
-];
+// Use the common timezones from the TimezoneSelect component
+const timezones = commonTimezones;
 
 // Move timezone resolution to useEffect
 const roundToNearestIncrement = (date: Date, increment: number) => {
@@ -216,7 +167,7 @@ export default function WorldClock() {
         {/* 🌍 Other Timezone Columns */}
         {selectedTimezones.map((tz, idx) => (
           <div key={idx} className="bg-gray-800 p-4 rounded-lg shadow-lg w-full">
-            <Select
+            <TimezoneSelect
               options={timezones}
               value={tz}
               onChange={(val) => {

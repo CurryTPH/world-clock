@@ -11,6 +11,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="preload"
           href="https://cdn.jsdelivr.net/npm/react-select@5.7.0/dist/react-select.min.css"
           as="style"
+          crossOrigin="anonymous"
+        />
+        <link 
+          rel="stylesheet" 
+          href="https://cdn.jsdelivr.net/npm/react-select@5.7.0/dist/react-select.min.css"
+          crossOrigin="anonymous" 
         />
       </head>
       <body className="bg-gray-900 text-white">
