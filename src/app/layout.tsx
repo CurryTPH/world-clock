@@ -1,4 +1,5 @@
 import "./globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Sidebar from "./components/Sidebar";
 import DarkModeToggle from "./components/DarkModeToggle";
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </main>
         </div>
+        <SpeedInsights />
       </body>
     </html>
   );
