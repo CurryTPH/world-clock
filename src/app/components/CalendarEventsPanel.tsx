@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { useIntegrations } from '../contexts/IntegrationsContext';
 import { CalendarEvent } from '../services/integrations';
 import { UserPreferences, defaultPreferences } from '../settings/preferences';
+import { loadUserPreferences } from '../utils/localStorage';
 
 // Memoize the event item to prevent unnecessary re-renders
 const EventItem = memo(({ event, activeCalendar, getServiceColor }: { 
@@ -112,10 +113,9 @@ const CalendarEventsPanel = memo(function CalendarEventsPanel() {
   // Load user preferences from localStorage
   useEffect(() => {
     try {
-      const savedPreferences = localStorage.getItem('userPreferences');
-      if (savedPreferences) {
-        setUserPreferences(JSON.parse(savedPreferences));
-      }
+      const loadedPreferences = loadUserPreferences();
+      console.log('Loading preferences in CalendarEventsPanel using utility function');
+      setUserPreferences(loadedPreferences);
     } catch (error) {
       console.error('Failed to load user preferences:', error);
     }
@@ -231,6 +231,59 @@ const CalendarEventsPanel = memo(function CalendarEventsPanel() {
       />
     ));
   }, [events, activeCalendar, getServiceColor]);
+
+  // Function to reload preferences
+  const reloadPreferences = useCallback(() => {
+    try {
+      const loadedPreferences = loadUserPreferences();
+      console.log('Reloading preferences in CalendarEventsPanel using utility function');
+      setUserPreferences(loadedPreferences);
+    } catch (error) {
+      console.error('Failed to reload user preferences:', error);
+    }
+  }, []);
+
+  // Add event listener for storage changes
+  useEffect(() => {
+    // Function to handle storage changes
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'userPreferences') {
+        console.log('Storage changed, reloading preferences');
+        reloadPreferences();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('storage', handleStorageChange);
+
+    // Clean up
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [reloadPreferences]);
+
+  // Add event listener for custom preferences updated event
+  useEffect(() => {
+    // Function to handle preferences updated event
+    const handlePreferencesUpdated = (event: Event) => {
+      console.log('Preferences updated event received');
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail && customEvent.detail.preferences) {
+        console.log('Setting new preferences from event:', customEvent.detail.preferences);
+        setUserPreferences(customEvent.detail.preferences);
+      } else {
+        reloadPreferences();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('preferencesUpdated', handlePreferencesUpdated);
+
+    // Clean up
+    return () => {
+      window.removeEventListener('preferencesUpdated', handlePreferencesUpdated);
+    };
+  }, [reloadPreferences]);
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-5 border border-gray-700 relative z-0">

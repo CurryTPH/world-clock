@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { UserPreferences, defaultPreferences } from './preferences';
+import { saveUserPreferences, loadUserPreferences } from '../utils/localStorage';
 
 export default function SettingsPage() {
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
@@ -9,10 +10,8 @@ export default function SettingsPage() {
   // Load preferences from localStorage when component mounts
   useEffect(() => {
     try {
-      const savedPreferences = localStorage.getItem('userPreferences');
-      if (savedPreferences) {
-        setPreferences(JSON.parse(savedPreferences));
-      }
+      const loadedPreferences = loadUserPreferences();
+      setPreferences(loadedPreferences);
     } catch (error) {
       console.error('Failed to load preferences from localStorage:', error);
     }
@@ -620,11 +619,20 @@ export default function SettingsPage() {
         <button 
           className="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-700 transition-colors"
           onClick={() => {
-            // Save preferences to localStorage
-            localStorage.setItem('userPreferences', JSON.stringify(preferences));
-            
-            // Show a success message
-            alert('Settings saved successfully!');
+            try {
+              // Save preferences to localStorage using utility function
+              const success = saveUserPreferences(preferences);
+              
+              // Show a success message
+              if (success) {
+                alert('Settings saved successfully!');
+              } else {
+                alert('Failed to save settings. Please try again.');
+              }
+            } catch (error) {
+              console.error('Failed to save preferences:', error);
+              alert('Failed to save settings. Please try again.');
+            }
           }}
         >
           Save
