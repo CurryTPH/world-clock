@@ -223,7 +223,7 @@ export function IntegrationsProvider({ children }: { children: React.ReactNode }
   }, []);
 
   // Helper function to simulate API delay
-  const simulateApiDelay = useCallback(async <T>(result: T): Promise<T> => {
+  const simulateApiDelay = useCallback(async <T,>(result: T): Promise<T> => {
     await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
     return result;
   }, []);

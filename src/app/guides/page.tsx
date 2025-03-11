@@ -236,7 +236,7 @@ export default function GuidesPage() {
                   <h4 className="text-lg font-medium text-yellow-400 mb-2">Tips for Using the Command Center</h4>
                   <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
                     <li>Use the Command Center for quick actions without navigating through the UI</li>
-                    <li>Type "help" to see all available commands at any time</li>
+                    <li>Type &quot;help&quot; to see all available commands at any time</li>
                     <li>Commands can be used to interact with all connected services</li>
                     <li>Command history is preserved during your session</li>
                   </ul>
