@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import { useIntegrations } from '../contexts/IntegrationsContext';
 
 interface AnalyticsData {
@@ -27,7 +27,20 @@ interface AnalyticsData {
   };
 }
 
-export default function IntegrationAnalytics() {
+// Create a stable seed for random values
+const getStableRandom = (seed: string) => {
+  // Simple hash function for string
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  // Normalize to 0-1 range
+  return Math.abs(hash) / 2147483647;
+};
+
+// Memoize the component to prevent unnecessary re-renders
+const IntegrationAnalytics = memo(function IntegrationAnalytics() {
   const { state } = useIntegrations();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
     totalConnections: 0,
@@ -53,15 +66,25 @@ export default function IntegrationAnalytics() {
     },
   });
 
+  // Extract connection status as dependencies
+  const connectionStatus = useMemo(() => {
+    return {
+      calendarsActive: Object.values(state.calendars).filter(c => c.connected).length,
+      communicationsActive: Object.values(state.communications).filter(c => c.connected).length,
+      videoServicesActive: Object.values(state.videoServices).filter(v => v.connected).length,
+      hrSystemsActive: Object.values(state.hrSystems).filter(h => h.connected).length
+    };
+  }, [
+    state.calendars,
+    state.communications,
+    state.videoServices,
+    state.hrSystems
+  ]);
+
   useEffect(() => {
     // Calculate analytics data based on integration state
     const calculateAnalytics = () => {
-      // Count active connections
-      const calendarsActive = Object.values(state.calendars).filter(c => c.connected).length;
-      const communicationsActive = Object.values(state.communications).filter(c => c.connected).length;
-      const videoServicesActive = Object.values(state.videoServices).filter(v => v.connected).length;
-      const hrSystemsActive = Object.values(state.hrSystems).filter(h => h.connected).length;
-      
+      const { calendarsActive, communicationsActive, videoServicesActive, hrSystemsActive } = connectionStatus;
       const totalActive = calendarsActive + communicationsActive + videoServicesActive + hrSystemsActive;
       
       // Determine sync health status
@@ -90,10 +113,11 @@ export default function IntegrationAnalytics() {
         else error++;
       });
       
-      // Generate mock usage metrics (in a real app, these would come from analytics tracking)
-      const meetingsScheduled = Math.floor(Math.random() * 50) + 10;
-      const notificationsSent = Math.floor(Math.random() * 100) + 25;
-      const commandsExecuted = Math.floor(Math.random() * 30) + 5;
+      // Use deterministic "random" values based on the number of active connections
+      const seed = `${calendarsActive}-${communicationsActive}-${videoServicesActive}-${hrSystemsActive}`;
+      const meetingsScheduled = Math.floor(getStableRandom(`${seed}-meetings`) * 50) + 10;
+      const notificationsSent = Math.floor(getStableRandom(`${seed}-notifications`) * 100) + 25;
+      const commandsExecuted = Math.floor(getStableRandom(`${seed}-commands`) * 30) + 5;
       
       // Mock timezone coverage
       const regions = ['Americas', 'Europe', 'Asia Pacific'];
@@ -125,7 +149,7 @@ export default function IntegrationAnalytics() {
     };
     
     calculateAnalytics();
-  }, [state]);
+  }, [connectionStatus, state.calendars, state.communications]);
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-5 border border-gray-700 relative z-0">
@@ -265,4 +289,6 @@ export default function IntegrationAnalytics() {
       </div>
     </div>
   );
-} 
+});
+
+export default IntegrationAnalytics; 

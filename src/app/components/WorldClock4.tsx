@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { IntegrationsProvider } from '../contexts/IntegrationsContext';
@@ -9,21 +9,38 @@ import CommandCenter from './CommandCenter';
 import NotificationCenter from './NotificationCenter';
 import IntegrationAnalytics from './IntegrationAnalytics';
 
+// Memoize the TimeDisplay component to prevent unnecessary re-renders
+const TimeDisplay = memo(({ timezone, cityName, currentTime }: { 
+  timezone: string; 
+  cityName: string;
+  currentTime: Date;
+}) => {
+  const zonedTime = toZonedTime(currentTime, timezone);
+  const formattedTime = format(zonedTime, 'h:mm:ss a');
+  
+  return (
+    <div className="bg-gray-900/50 p-4 rounded-lg">
+      <h3 className="text-lg font-medium mb-2">{cityName}</h3>
+      <p className="text-2xl font-mono">{formattedTime}</p>
+    </div>
+  );
+});
+
+// Add display name to fix ESLint error
+TimeDisplay.displayName = 'TimeDisplay';
+
 export default function WorldClock4() {
   const [currentTime, setCurrentTime] = useState(new Date());
   
   useEffect(() => {
+    // Update time every 5 seconds for better performance
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 1000);
+    }, 5000);
     
+    // Clean up the timer when component unmounts
     return () => clearInterval(timer);
   }, []);
-
-  const formatTimeForTimezone = (timezone: string) => {
-    const zonedTime = toZonedTime(currentTime, timezone);
-    return format(zonedTime, 'h:mm:ss a');
-  };
 
   return (
     <IntegrationsProvider>
@@ -41,22 +58,26 @@ export default function WorldClock4() {
             <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
               <h2 className="text-xl font-semibold mb-4">Current Time</h2>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-900/50 p-4 rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">New York</h3>
-                  <p className="text-2xl font-mono">{formatTimeForTimezone('America/New_York')}</p>
-                </div>
-                <div className="bg-gray-900/50 p-4 rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">London</h3>
-                  <p className="text-2xl font-mono">{formatTimeForTimezone('Europe/London')}</p>
-                </div>
-                <div className="bg-gray-900/50 p-4 rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">Tokyo</h3>
-                  <p className="text-2xl font-mono">{formatTimeForTimezone('Asia/Tokyo')}</p>
-                </div>
-                <div className="bg-gray-900/50 p-4 rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">Sydney</h3>
-                  <p className="text-2xl font-mono">{formatTimeForTimezone('Australia/Sydney')}</p>
-                </div>
+                <TimeDisplay 
+                  timezone="America/New_York" 
+                  cityName="New York" 
+                  currentTime={currentTime} 
+                />
+                <TimeDisplay 
+                  timezone="Europe/London" 
+                  cityName="London" 
+                  currentTime={currentTime} 
+                />
+                <TimeDisplay 
+                  timezone="Asia/Tokyo" 
+                  cityName="Tokyo" 
+                  currentTime={currentTime} 
+                />
+                <TimeDisplay 
+                  timezone="Australia/Sydney" 
+                  cityName="Sydney" 
+                  currentTime={currentTime} 
+                />
               </div>
             </div>
             

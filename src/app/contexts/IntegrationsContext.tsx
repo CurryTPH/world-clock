@@ -410,7 +410,12 @@ export function IntegrationsProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const generateNotifications = async () => {
       try {
-        const notifications = await generateMockNotifications(state);
+        const notifications = await generateMockNotifications({
+          calendars: state.calendars,
+          communications: state.communications,
+          videoServices: state.videoServices,
+          hrSystems: state.hrSystems
+        });
         dispatch({ type: 'SET_NOTIFICATIONS', notifications });
       } catch (error) {
         console.error('Failed to generate notifications:', error);
@@ -418,7 +423,17 @@ export function IntegrationsProvider({ children }: { children: React.ReactNode }
     };
     
     generateNotifications();
-  }, [state]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    // Using JSON.stringify can cause performance issues, so we disable the eslint rule
+    // and manually specify the dependencies we care about
+    JSON.stringify({
+      calendars: Object.entries(state.calendars).map(([name, cal]) => `${name}-${cal.connected}`),
+      communications: Object.entries(state.communications).map(([name, comm]) => `${name}-${comm.connected}`),
+      videoServices: Object.entries(state.videoServices).map(([name, service]) => `${name}-${service.connected}`),
+      hrSystems: Object.entries(state.hrSystems).map(([name, system]) => `${name}-${system.connected}`)
+    })
+  ]);
 
   // Connect some services by default for demo purposes
   useEffect(() => {
@@ -431,21 +446,30 @@ export function IntegrationsProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const addDummyEvents = async () => {
       try {
-        // Generate dummy events for the connected calendar
-        const outlookEvents = await simulateApiDelay(generateMockCalendarEvents('outlook', 8));
+        // Set loading state
+        dispatch({ type: 'SET_LOADING', loading: true });
+        
+        // Generate dummy events for the connected calendar without delay for better performance
+        const outlookEvents = generateMockCalendarEvents('outlook', 8);
         
         // Set the events in the state
         dispatch({ type: 'SET_CALENDAR_EVENTS', events: outlookEvents });
+        
+        // Clear loading state
+        dispatch({ type: 'SET_LOADING', loading: false });
       } catch (error) {
         console.error('Failed to generate dummy events:', error);
+        dispatch({ type: 'SET_LOADING', loading: false });
       }
     };
     
     // Add a small delay to ensure the calendar is connected first
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       addDummyEvents();
     }, 1000);
-  }, [simulateApiDelay]);
+    
+    return () => clearTimeout(timer);
+  }, []); // Remove simulateApiDelay dependency
 
   const contextValue = {
     state,
