@@ -34,14 +34,7 @@ const Sidebar = () => {
           className={`block p-2 rounded hover:bg-blue-500 transition-colors ${isActive('/world-clock-2') ? 'bg-blue-500' : 'bg-gray-700'}`}
           aria-current={isActive('/world-clock-2') ? 'page' : undefined}
         >
-          World Clock 2 (Test)
-        </Link>
-        <Link 
-          href="/another-tab" 
-          className={`block p-2 rounded hover:bg-blue-500 transition-colors ${isActive('/another-tab') ? 'bg-blue-500' : 'bg-gray-700'}`}
-          aria-current={isActive('/another-tab') ? 'page' : undefined}
-        >
-          Another Tab (Demo)
+          World Clock 2
         </Link>
         <Link 
           href="/settings" 
