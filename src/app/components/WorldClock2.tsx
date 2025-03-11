@@ -75,15 +75,17 @@ const generateTimeSlots = (interval: number, baseDate: Date = new Date()): Date[
 export default function WorldClock2() {
   const userLocalTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   
-  const [timezones, setTimezones] = useState<TimezoneOption[]>([
+  const [timezones] = useState<TimezoneOption[]>([
     { value: userLocalTimezone || "UTC", label: userLocalTimezone || "UTC" }
   ]);
-  const [currentTimes, setCurrentTimes] = useState<{ timezone: string; time: Date }[]>([]);
-  const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [localTime, setLocalTime] = useState<Date | null>(null);
+  const [localTimeSlots, setLocalTimeSlots] = useState<Date[]>([]);
+  const [timeSlots, setTimeSlots] = useState<Date[]>([]);
+  const [showAIScheduler, setShowAIScheduler] = useState(false);
   const [userPreferences] = useState<UserPreferences>(defaultPreferences);
 
   // State hooks
-  const [mounted, setMounted] = useState(false);
   const [selectedTimezones, setSelectedTimezones] = useState([
     commonTimezones[0],
     commonTimezones[1],
@@ -91,9 +93,6 @@ export default function WorldClock2() {
     commonTimezones[3],
   ]);
   const [highlightedTime, setHighlightedTime] = useState<Date | null>(null);
-  const [localTime, setLocalTime] = useState<Date | null>(null);
-  const [localTimeSlots, setLocalTimeSlots] = useState<Date[]>([]);
-  const [timeSlots, setTimeSlots] = useState<Date[]>([]);
 
   // New state for AI scheduling
   const [participants, setParticipants] = useState<Participant[]>([
@@ -106,8 +105,6 @@ export default function WorldClock2() {
       meetingHistory: []
     }
   ]);
-
-  const [showAIScheduler, setShowAIScheduler] = useState(false);
 
   // Ref hooks
   const highlightTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -303,28 +300,13 @@ export default function WorldClock2() {
 
   useEffect(() => {
     const updateTimes = () => {
-      setCurrentTimes(timezones.map(tz => ({
-        timezone: tz.value,
-        time: toZonedTime(new Date(), tz.value)
-      })));
+      setLocalTime(roundToNearestIncrement(new Date(), 10));
     };
 
     updateTimes();
     const interval = setInterval(updateTimes, 1000);
 
     return () => clearInterval(interval);
-  }, [timezones]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const newWidth = window.innerWidth;
-      setIsMobile(newWidth < 768);
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Don't render anything until client-side initialization is complete

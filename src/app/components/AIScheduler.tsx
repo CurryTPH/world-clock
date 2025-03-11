@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+"use client";
+
+import { useState, useEffect, useCallback } from 'react';
 import { format, addHours, isWithinInterval, set } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { UserPreferences } from '../settings/page';
@@ -48,13 +50,9 @@ export function AIScheduler({
 }: AISchedulerProps) {
   const [suggestedSlots, setSuggestedSlots] = useState<MeetingSlot[]>([]);
 
-  // Analyze participant patterns and preferences
-  const analyzeParticipantPatterns = (participant: Participant): {
-    preferredDayTime: 'morning' | 'afternoon' | 'evening';
-    meetingFrequency: number;
-    backToBackPreference: boolean;
-  } => {
-    const meetingHistory = participant.meetingHistory || [];
+  // Move analyzeParticipantPatterns outside since it doesn't depend on any props or state
+  const analyzeParticipantPatterns = useCallback((participant: Participant) => {
+    const meetingHistory = participant.meetingHistory ?? [];
     
     // Analyze preferred meeting times
     const timeDistribution = meetingHistory.reduce((acc, date) => {
@@ -85,10 +83,9 @@ export function AIScheduler({
       meetingFrequency,
       backToBackPreference
     };
-  };
+  }, []);
 
-  // Score a potential meeting slot
-  const scoreTimeSlot = (
+  const scoreTimeSlot = useCallback((
     time: Date,
     participant: Participant,
     patterns: ReturnType<typeof analyzeParticipantPatterns>
@@ -150,8 +147,9 @@ export function AIScheduler({
     }
 
     // Back-to-back meetings handling
-    if (!userPreferences.backToBackMeetings && participant.meetingHistory?.length > 0) {
-      const lastMeeting = participant.meetingHistory[participant.meetingHistory.length - 1];
+    const meetingHistory = participant.meetingHistory ?? [];
+    if (!userPreferences.backToBackMeetings && meetingHistory.length > 0) {
+      const lastMeeting = meetingHistory[meetingHistory.length - 1];
       const timeSinceLastMeeting = Math.abs(time.getTime() - lastMeeting.getTime()) / (1000 * 60); // in minutes
       
       if (timeSinceLastMeeting < userPreferences.minimumBreakBetweenMeetings) {
@@ -160,8 +158,8 @@ export function AIScheduler({
     }
 
     // Meeting frequency check
-    if (participant.meetingHistory) {
-      const todayMeetings = participant.meetingHistory.filter(
+    if (meetingHistory.length > 0) {
+      const todayMeetings = meetingHistory.filter(
         meeting => meeting.toDateString() === time.toDateString()
       ).length;
 
@@ -176,16 +174,14 @@ export function AIScheduler({
     }
 
     return score;
-  };
+  }, [userPreferences]);
 
-  // Generate meeting slots
   useEffect(() => {
     const generateSlots = () => {
       const slots: MeetingSlot[] = [];
       const now = new Date();
       const endDate = addHours(now, 168); // Look ahead 1 week
 
-      // Analyze patterns for each participant
       const participantPatterns = participants.reduce((acc, participant) => ({
         ...acc,
         [participant.name]: analyzeParticipantPatterns(participant)
@@ -229,7 +225,7 @@ export function AIScheduler({
     };
 
     setSuggestedSlots(generateSlots());
-  }, [participants, duration, scoreTimeSlot, userPreferences]);
+  }, [participants, duration, userPreferences, analyzeParticipantPatterns, scoreTimeSlot]);
 
   return (
     <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
