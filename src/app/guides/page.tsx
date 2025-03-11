@@ -84,8 +84,8 @@ export default function GuidesPage() {
               <h3 className="text-lg font-medium mb-3">How to Access the AI Scheduler</h3>
               <ol className="list-decimal list-inside space-y-2 text-gray-300">
                 <li>Navigate to World Clock 2 or World Clock 3</li>
-                <li>Look for the "AI-Powered Scheduling" section at the top</li>
-                <li>Click the "Show Scheduler" button to expand the interface</li>
+                <li>Look for the &quot;AI-Powered Scheduling&quot; section at the top</li>
+                <li>Click the &quot;Show Scheduler&quot; button to expand the interface</li>
               </ol>
             </div>
 
@@ -171,7 +171,7 @@ export default function GuidesPage() {
               <ul className="list-disc list-inside space-y-2 text-gray-300">
                 <li>Keep your working hours and preferences up to date in Settings</li>
                 <li>Consider adding buffer time before and after meetings across timezones</li>
-                <li>Use the AI's suggestions as a starting point, but always verify with participants</li>
+                <li>The AI&apos;s suggestions as a starting point, but always verify with participants</li>
                 <li>Pay attention to DST changes when scheduling meetings weeks in advance</li>
                 <li>Use the analytics features to understand team meeting patterns and optimize scheduling</li>
               </ul>
@@ -324,7 +324,7 @@ export default function GuidesPage() {
                     <li>Schedule key meetings during high-overlap periods</li>
                     <li>Plan async work during low-overlap times</li>
                     <li>Use analytics to find optimal collaboration times</li>
-                    <li>Respect team members' peak productivity hours</li>
+                    <li>Respect team members&apos; peak productivity hours</li>
                   </ul>
                 </div>
               </div>

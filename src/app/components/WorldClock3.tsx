@@ -8,12 +8,6 @@ import NotificationButton from './NotificationButton';
 import { AIScheduler } from './AIScheduler';
 import { UserPreferences, defaultPreferences } from '../settings/preferences';
 
-interface TimezoneOption {
-  value: string;
-  label: string;
-  group?: string;
-}
-
 interface ProductivityData {
   hour: number;
   activityLevel: number;
