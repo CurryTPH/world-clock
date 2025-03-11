@@ -8,11 +8,56 @@ interface Notification {
   message: string;
   timestamp: Date;
   isRead: boolean;
+  type?: 'tutorial' | 'info';
   link?: string;
+  details?: string;
 }
 
+const tutorialNotifications: Notification[] = [
+  {
+    id: 'dst-indicator',
+    message: 'DST Indicator Guide',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    details: 'The green "DST" badge indicates that a timezone is currently in Daylight Saving Time. This means the time is shifted forward by one hour from the standard time.'
+  },
+  {
+    id: 'dst-transitions',
+    message: 'DST Transition Dates',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    details: 'Below each timezone, you\'ll see the DST transition dates showing when DST starts and ends. For example: "Mar 10 - Nov 3" means DST begins on March 10 and ends on November 3.'
+  },
+  {
+    id: 'dst-dots',
+    message: 'DST Transition Indicators',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    details: 'Yellow dots appear next to times when DST transitions occur. These indicate the exact dates when clocks are adjusted forward in spring or backward in fall.'
+  },
+  {
+    id: 'timezone-conversion',
+    message: 'Time Conversion Guide',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    details: 'Click any time to see its equivalent across all timezones. The selected time will be highlighted in pink across all columns, showing you the exact corresponding times.'
+  },
+  {
+    id: 'current-time',
+    message: 'Current Time Tracking',
+    timestamp: new Date(),
+    isRead: false,
+    type: 'tutorial',
+    details: 'The blue highlighted rows show the current time in each timezone. These automatically update and stay synchronized across all columns.'
+  }
+];
+
 export default function NotificationButton() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>(tutorialNotifications);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -30,23 +75,6 @@ export default function NotificationButton() {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Simulated notification creation (replace with your actual notification system)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.8) { // 20% chance to create a notification
-        const newNotification: Notification = {
-          id: Math.random().toString(36).substring(7),
-          message: `New notification ${Math.floor(Math.random() * 100)}`,
-          timestamp: new Date(),
-          isRead: false
-        };
-        setNotifications(prev => [...prev, newNotification]);
-      }
-    }, 10000); // Check every 10 seconds
-
-    return () => clearInterval(interval);
   }, []);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -76,14 +104,14 @@ export default function NotificationButton() {
         onClick={() => setIsOpen(!isOpen)}
         className={`relative p-2 rounded-full transition-all duration-300 ${
           unreadCount > 0 
-            ? 'bg-orange-100 hover:bg-orange-200 animate-pulse' 
+            ? 'bg-blue-100 hover:bg-blue-200' 
             : 'bg-gray-100 hover:bg-gray-200'
-        } hover:scale-110`}
+        }`}
       >
-        {/* Bell Icon */}
+        {/* Question Mark Icon for Tutorial */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={`h-6 w-6 ${unreadCount > 0 ? 'text-orange-500' : 'text-gray-500'}`}
+          className={`h-6 w-6 ${unreadCount > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -92,13 +120,13 @@ export default function NotificationButton() {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
 
         {/* Notification Badge */}
         {unreadCount > 0 && (
-          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce">
+          <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
             {unreadCount}
           </div>
         )}
@@ -108,11 +136,11 @@ export default function NotificationButton() {
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="fixed right-4 mt-12 w-80 bg-white rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto"
+          className="fixed right-4 mt-12 w-96 bg-white rounded-lg shadow-xl z-50 max-h-[80vh] overflow-y-auto"
         >
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200 bg-gray-50">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Notifications</h3>
+              <h3 className="text-lg font-semibold">DST & Timezone Guide</h3>
               <div className="space-x-2">
                 <button
                   onClick={markAllAsRead}
@@ -145,14 +173,19 @@ export default function NotificationButton() {
                   }`}
                 >
                   <div className="flex justify-between">
-                    <p className={`${!notification.isRead ? 'font-semibold' : ''}`}>
+                    <p className={`${!notification.isRead ? 'font-semibold' : ''} text-lg`}>
                       {notification.message}
                     </p>
                     {!notification.isRead && (
-                      <span className="h-2 w-2 bg-blue-600 rounded-full"></span>
+                      <span className="h-2 w-2 bg-blue-600 rounded-full mt-2"></span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  {notification.details && (
+                    <p className="text-gray-600 mt-2 text-sm leading-relaxed">
+                      {notification.details}
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-400 mt-2">
                     {format(notification.timestamp, 'MMM d, h:mm a')}
                   </p>
                 </div>
