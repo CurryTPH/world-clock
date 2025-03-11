@@ -254,9 +254,9 @@ export default function WorldClock() {
         <NotificationButton />
       </div>
 
-      <div className="flex justify-center w-full pt-16">
+      <div className="flex justify-center w-full pt-16 overflow-x-hidden">
         <div 
-          className="grid grid-cols-5 gap-4 w-full max-w-7xl"
+          className="grid grid-cols-5 gap-4 w-full max-w-7xl transform-gpu"
           role="region" 
           aria-label="World Clock Timezone Comparison"
         >
@@ -278,10 +278,9 @@ export default function WorldClock() {
             </div>
             <div 
               ref={localColumnRef} 
-              className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+              className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] transform-gpu"
               role="listbox"
               aria-label="Local times"
-              style={{ willChange: 'transform' }}
             >
               {localTimeSlots.map((time, index) => {
                 const zonedTime = toZonedTime(time, userLocalTimezone);
@@ -390,10 +389,9 @@ export default function WorldClock() {
                 </div>
                 <div 
                   ref={columnRefs[idx]} 
-                  className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                  className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] transform-gpu"
                   role="listbox"
                   aria-label={`Times for ${tz.label}`}
-                  style={{ willChange: 'transform' }}
                 >
                   {timeSlots.map((time) => {
                     const zonedTime = toZonedTime(time, tz.value);

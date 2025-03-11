@@ -339,8 +339,8 @@ export default function WorldClock2() {
         <NotificationButton />
       </div>
 
-      <div className="flex justify-center w-full pt-16">
-        <div className="w-full max-w-7xl space-y-6">
+      <div className="flex justify-center w-full pt-16 overflow-x-hidden">
+        <div className="w-full max-w-7xl space-y-6 transform-gpu">
           {/* AI Scheduling Controls */}
           <div className="bg-gray-900 p-4 rounded-lg shadow-lg">
             <div className="flex items-center justify-between mb-4">
@@ -405,10 +405,9 @@ export default function WorldClock2() {
               </div>
               <div 
                 ref={localColumnRef} 
-                className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] transform-gpu"
                 role="listbox"
                 aria-label="Local times"
-                style={{ willChange: 'transform' }}
               >
                 {localTimeSlots.map((time, index) => {
                   const zonedTime = toZonedTime(time, userLocalTimezone);
@@ -470,10 +469,9 @@ export default function WorldClock2() {
                   </div>
                   <div 
                     ref={columnRefs[idx]} 
-                    className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                    className="max-h-[400px] overflow-y-auto border border-gray-700 rounded-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] transform-gpu"
                     role="listbox"
                     aria-label={`Times for ${tz.label}`}
-                    style={{ willChange: 'transform' }}
                   >
                     {timeSlots.map((time) => {
                       const zonedTime = toZonedTime(time, tz.value);
