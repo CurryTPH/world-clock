@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
@@ -23,4 +26,116 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* globals.css */
+body {
+  background-color: #121212;
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+}
+
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Improve grid layout */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+/* Add padding and spacing */
+.column {
+  background: #1e1e1e;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Improve time slot styling */
+.time-slot {
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* Highlighted time selection */
+.time-slot.highlighted {
+  background-color: #ff4081;
+  color: white;
+  font-weight: bold;
+}
+
+/* Current time highlight */
+.time-slot.current {
+  background-color: #1976d2;
+  color: white;
+  font-weight: bold;
+}
+
+/* Add hover effect */
+.time-slot:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+@media screen and (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .time-slot {
+    font-size: 12px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .grid-container {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .column {
+    width: 100%;
+  }
+}
+
+/* Sidebar and Layout Styles */
+aside.w-64 {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+main.flex-1 {
+  min-height: 100vh;
+}
+
+/* Active link styling */
+[aria-current="page"] {
+  background-color: #3b82f6 !important; /* blue-500 */
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .flex.h-screen {
+    flex-direction: column;
+  }
+  
+  aside.w-64 {
+    width: 100%;
+    height: auto;
+    position: static;
+  }
 }
