@@ -108,7 +108,7 @@ export default function NotificationButton() {
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto"
+          className="fixed right-4 mt-12 w-80 bg-white rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto"
         >
           <div className="p-4 border-b border-gray-200">
             <div className="flex justify-between items-center">

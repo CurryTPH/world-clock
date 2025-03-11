@@ -188,11 +188,11 @@ export default function WorldClock() {
   return (
     <div className="relative w-full">
       {/* Notification Button */}
-      <div className="absolute top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-50">
         <NotificationButton />
       </div>
 
-      <div className="flex justify-center w-full">
+      <div className="flex justify-center w-full pt-16">
         <div className="grid grid-cols-5 gap-4 w-full max-w-7xl">
           {/* 🔵 Local Time Column (User's Timezone, 10-min increments) */}
           <div className="bg-gray-900 p-4 rounded-lg shadow-lg w-full">
