@@ -1,3 +1,5 @@
+// Future implementation: Look into themes and possible reactive themes with weather similar to Apple's weather app
+
 "use client";
 import { useState, useEffect } from "react";
 
@@ -9,7 +11,7 @@ const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ className = "" }) => {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    // Check for saved preference or system preference
+    // Check for saved preference or windows system preference
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     

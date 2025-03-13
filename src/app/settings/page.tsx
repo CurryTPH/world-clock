@@ -4,6 +4,59 @@ import { useState, useEffect } from 'react';
 import { UserPreferences, defaultPreferences } from './preferences';
 import { saveUserPreferences, loadUserPreferences } from '../utils/localStorage';
 
+// Function to download preferences as a JSON file
+const downloadPreferencesAsFile = (preferences: UserPreferences) => {
+  try {
+    const preferencesString = JSON.stringify(preferences, null, 2);
+    const blob = new Blob([preferencesString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'world-clock-preferences.json';
+    document.body.appendChild(a);
+    a.click();
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to download preferences:', error);
+    return false;
+  }
+};
+
+// Function to read preferences from a file
+const readPreferencesFromFile = (file: File): Promise<UserPreferences> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (event) => {
+      try {
+        const result = event.target?.result;
+        if (typeof result === 'string') {
+          const parsedPreferences = JSON.parse(result);
+          resolve(parsedPreferences);
+        } else {
+          reject(new Error('Failed to read file: Invalid result type'));
+        }
+      } catch (error) {
+        reject(error);
+      }
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'));
+    };
+    
+    reader.readAsText(file);
+  });
+};
+
 export default function SettingsPage() {
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
 
@@ -616,27 +669,149 @@ export default function SettingsPage() {
       
       {/* Save Button */}
       <div className="mt-8">
-        <button 
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-700 transition-colors"
-          onClick={() => {
-            try {
-              // Save preferences to localStorage using utility function
-              const success = saveUserPreferences(preferences);
-              
-              // Show a success message
-              if (success) {
-                alert('Settings saved successfully!');
-              } else {
+        <div className="flex flex-wrap gap-3">
+          <button 
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-700 transition-colors"
+            onClick={() => {
+              try {
+                console.log('Save button clicked, current preferences:', preferences);
+                
+                // Save preferences to localStorage using utility function
+                const success = saveUserPreferences(preferences);
+                console.log('Save operation result:', success);
+                
+                // Try to immediately read back the preferences to verify
+                try {
+                  const verifyPreferences = loadUserPreferences();
+                  console.log('Verification - preferences loaded after save:', verifyPreferences);
+                } catch (verifyError) {
+                  console.error('Verification failed:', verifyError);
+                }
+                
+                // Show a success message
+                if (success) {
+                  alert('Settings saved successfully!');
+                } else {
+                  alert('Failed to save settings. Please try again.');
+                }
+              } catch (error) {
+                console.error('Failed to save preferences:', error);
                 alert('Failed to save settings. Please try again.');
               }
-            } catch (error) {
-              console.error('Failed to save preferences:', error);
-              alert('Failed to save settings. Please try again.');
-            }
-          }}
-        >
-          Save
-        </button>
+            }}
+          >
+            Save
+          </button>
+          
+          <button 
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            onClick={() => {
+              try {
+                // Load preferences from storage
+                const loadedPreferences = loadUserPreferences();
+                console.log('Loaded preferences:', loadedPreferences);
+                
+                // Update state with loaded preferences
+                setPreferences(loadedPreferences);
+                
+                alert('Settings loaded successfully!');
+              } catch (error: any) {
+                console.error('Failed to load preferences:', error);
+                alert(`Failed to load settings: ${error.message}`);
+              }
+            }}
+          >
+            Load Saved Settings
+          </button>
+          
+          <button 
+            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+            onClick={() => {
+              try {
+                // Download preferences as a file
+                const success = downloadPreferencesAsFile(preferences);
+                
+                if (success) {
+                  alert('Settings downloaded successfully!');
+                } else {
+                  alert('Failed to download settings. Please try again.');
+                }
+              } catch (error: any) {
+                console.error('Failed to download preferences:', error);
+                alert(`Failed to download settings: ${error.message}`);
+              }
+            }}
+          >
+            Download Settings
+          </button>
+          
+          <label className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors cursor-pointer">
+            Upload Settings
+            <input
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={async (e) => {
+                try {
+                  const file = e.target.files?.[0];
+                  if (!file) {
+                    return;
+                  }
+                  
+                  // Read preferences from file
+                  const loadedPreferences = await readPreferencesFromFile(file);
+                  console.log('Loaded preferences from file:', loadedPreferences);
+                  
+                  // Update state with loaded preferences
+                  setPreferences(loadedPreferences);
+                  
+                  // Save to storage
+                  saveUserPreferences(loadedPreferences);
+                  
+                  alert('Settings uploaded and applied successfully!');
+                } catch (error: any) {
+                  console.error('Failed to upload preferences:', error);
+                  alert(`Failed to upload settings: ${error.message}`);
+                }
+              }}
+            />
+          </label>
+        </div>
+        
+        <div className="mt-4">
+          <button 
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+            onClick={() => {
+              try {
+                // Check if localStorage is working
+                const testKey = 'test_key';
+                const testValue = 'test_value_' + Date.now();
+                
+                console.log('Testing localStorage...');
+                localStorage.setItem(testKey, testValue);
+                const retrievedValue = localStorage.getItem(testKey);
+                console.log(`Test value set: ${testValue}, retrieved: ${retrievedValue}`);
+                
+                if (retrievedValue === testValue) {
+                  console.log('localStorage is working correctly');
+                } else {
+                  console.error('localStorage is not working correctly');
+                }
+                
+                // Load current preferences
+                const currentPrefs = loadUserPreferences();
+                console.log('Current preferences:', currentPrefs);
+                
+                alert(`localStorage test: ${retrievedValue === testValue ? 'PASSED' : 'FAILED'}\nCheck console for details.`);
+              } catch (error: any) {
+                console.error('Debug test failed:', error);
+                alert(`localStorage test FAILED with error: ${error.message}\nCheck console for details.`);
+              }
+            }}
+          >
+            Debug Storage
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -88,6 +88,62 @@ export const commonTimezones: TimezoneOption[] = [
     value: "Asia/Tokyo",
     label: "Tokyo (JST)",
     isDST: false
+  },
+  {
+    value: "Europe/Paris",
+    label: "Paris (CET/CEST)",
+    isDST: isTimezoneDST("Europe/Paris"),
+    dstTransitions: getDSTTransitions("Europe/Paris")
+  },
+  {
+    value: "Asia/Dubai",
+    label: "Dubai (GST)",
+    isDST: false
+  },
+  {
+    value: "Asia/Shanghai",
+    label: "Shanghai (CST)",
+    isDST: false
+  },
+  {
+    value: "Australia/Sydney",
+    label: "Sydney (AEST/AEDT)",
+    isDST: isTimezoneDST("Australia/Sydney"),
+    dstTransitions: getDSTTransitions("Australia/Sydney")
+  },
+  {
+    value: "Pacific/Auckland",
+    label: "Auckland (NZST/NZDT)",
+    isDST: isTimezoneDST("Pacific/Auckland"),
+    dstTransitions: getDSTTransitions("Pacific/Auckland")
+  },
+  {
+    value: "America/Los_Angeles",
+    label: "Los Angeles (PST/PDT)",
+    isDST: isTimezoneDST("America/Los_Angeles"),
+    dstTransitions: getDSTTransitions("America/Los_Angeles")
+  },
+  {
+    value: "America/Toronto",
+    label: "Toronto (EST/EDT)",
+    isDST: isTimezoneDST("America/Toronto"),
+    dstTransitions: getDSTTransitions("America/Toronto")
+  },
+  {
+    value: "Europe/Berlin",
+    label: "Berlin (CET/CEST)",
+    isDST: isTimezoneDST("Europe/Berlin"),
+    dstTransitions: getDSTTransitions("Europe/Berlin")
+  },
+  {
+    value: "Asia/Singapore",
+    label: "Singapore (SGT)",
+    isDST: false
+  },
+  {
+    value: "Asia/Seoul",
+    label: "Seoul (KST)",
+    isDST: false
   }
 ];
 
