@@ -1,631 +1,86 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
+
+interface Client {
+  id: string;
+  name: string;
+  kidsSports: string[];
+  hobbies: string[];
+  placesVisited: string[];
+  lastMeeting: string;
+  lastUpdated: string;
+}
 
 export default function GuidesPage() {
+  const [clients, setClients] = useState<Client[]>([
+    {
+      id: '1',
+      name: 'Client2',
+      kidsSports: [],
+      hobbies: ['Travel'],
+      placesVisited: ['Iceland'],
+      lastMeeting: 'Needs project report by Tuesday EOD',
+      lastUpdated: '3/12/2023, 8:00:37 PM'
+    },
+    {
+      id: '2',
+      name: 'Pramod',
+      kidsSports: ['Tennis'],
+      hobbies: ['Film'],
+      placesVisited: ['Alaska'],
+      lastMeeting: 'Test, test, test',
+      lastUpdated: '3/12/2023, 7:59:44 PM'
+    }
+  ]);
+  
+  const [showModal, setShowModal] = useState(false);
+  const [expandedNote, setExpandedNote] = useState<string | null>('1');
+  const [newClient, setNewClient] = useState({
+    name: '',
+    kidsSports: '',
+    hobbies: '',
+    placesVisited: '',
+    lastMeeting: ''
+  });
+
+  const handleDeleteClient = (id: string) => {
+    setClients(clients.filter(client => client.id !== id));
+  };
+
+  const handleAddClient = () => {
+    if (!newClient.name.trim()) return;
+    
+    const client: Client = {
+      id: Date.now().toString(),
+      name: newClient.name,
+      kidsSports: newClient.kidsSports ? newClient.kidsSports.split(',').map(s => s.trim()) : [],
+      hobbies: newClient.hobbies ? newClient.hobbies.split(',').map(s => s.trim()) : [],
+      placesVisited: newClient.placesVisited ? newClient.placesVisited.split(',').map(s => s.trim()) : [],
+      lastMeeting: newClient.lastMeeting,
+      lastUpdated: new Date().toLocaleString()
+    };
+    
+    setClients([...clients, client]);
+    setNewClient({
+      name: '',
+      kidsSports: '',
+      hobbies: '',
+      placesVisited: '',
+      lastMeeting: ''
+    });
+    setShowModal(false);
+  };
+
+  const toggleNote = (id: string) => {
+    setExpandedNote(expandedNote === id ? null : id);
+  };
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-6">World Clock Guides</h1>
       
       <div className="space-y-8">
-        {/* Quick Start Guide */}
-        <section className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
-          <h2 className="text-2xl font-semibold mb-4">Quick Start Guide</h2>
-          <div className="space-y-4">
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-2">Basic Navigation</h3>
-              <ul className="list-disc list-inside space-y-2 text-gray-300">
-                <li>Use the sidebar to switch between different World Clock views</li>
-                <li>Click on any time to highlight it across all timezones</li>
-                <li>Use keyboard arrows for precise time navigation</li>
-              </ul>
-            </div>
-            
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-2">Working with Timezones</h3>
-              <ul className="list-disc list-inside space-y-2 text-gray-300">
-                <li>Select different timezones using the dropdown menus</li>
-                <li>DST transitions are highlighted with yellow indicators</li>
-                <li>Current time is marked in blue across all columns</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Guide */}
-        <section className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
-          <h2 className="text-2xl font-semibold mb-4">Features Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-2">World Clock Classic</h3>
-              <p className="text-gray-300">The original view with basic timezone comparison and DST tracking.</p>
-            </div>
-            
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-2">World Clock 2</h3>
-              <p className="text-gray-300">Enhanced view with AI scheduling capabilities and meeting optimization.</p>
-            </div>
-            
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-2">World Clock 3</h3>
-              <p className="text-gray-300">Advanced view with team management and collaborative scheduling.</p>
-            </div>
-            
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-2">World Clock 4</h3>
-              <p className="text-gray-300">Enterprise-ready view with deep integrations for productivity tools and analytics.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Deep Integrations Guide */}
-        <section className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
-          <h2 className="text-2xl font-semibold mb-4">Deep Integrations with Productivity Tools</h2>
-          <p className="text-gray-300 mb-6">
-            World Clock 4 offers seamless integration with your existing productivity ecosystem, allowing you to manage time across different timezones while staying connected to your essential work tools.
-          </p>
-          
-          <div className="space-y-6">
-            {/* Calendar Integrations */}
-            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold">Calendar Integrations</h3>
-              </div>
-              
-              <div className="space-y-4 ml-2">
-                <div>
-                  <h4 className="text-lg font-medium text-blue-400 mb-2">Supported Calendar Services</h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li><span className="font-medium">Outlook Calendar:</span> Sync with Microsoft&apos;s calendar service</li>
-                    <li><span className="font-medium">Google Calendar:</span> Connect to Google Workspace calendars</li>
-                    <li><span className="font-medium">Apple Calendar:</span> Integrate with iCloud calendar services</li>
-                  </ul>
-                </div>
-                
-                <div>
-                  <h4 className="text-lg font-medium text-blue-400 mb-2">Setup Instructions</h4>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-300 ml-4">
-                    <li>Navigate to the <span className="font-mono bg-gray-800 px-1 rounded">Integration Controls</span> panel in World Clock 4</li>
-                    <li>Under <span className="font-mono bg-gray-800 px-1 rounded">Calendar Services</span>, click on the service you want to connect</li>
-                    <li>Follow the authentication prompts to grant World Clock access</li>
-                    <li>Once connected, your calendar events will appear in the Calendar Events Panel</li>
-                  </ol>
-                </div>
-                
-                <div>
-                  <h4 className="text-lg font-medium text-blue-400 mb-2">Key Features</h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li>View upcoming meetings across all connected calendars</li>
-                    <li>Automatic timezone conversion for all events</li>
-                    <li>One-click access to meeting links</li>
-                    <li>Filter events by calendar service</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            {/* Communication Platforms */}
-            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold">Communication Platforms</h3>
-              </div>
-              
-              <div className="space-y-4 ml-2">
-                <div>
-                  <h4 className="text-lg font-medium text-indigo-400 mb-2">Supported Platforms</h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li><span className="font-medium">Slack:</span> Connect to your Slack workspaces</li>
-                    <li><span className="font-medium">Microsoft Teams:</span> Integrate with Teams channels</li>
-                    <li><span className="font-medium">Email:</span> Connect to your email services</li>
-                  </ul>
-                </div>
-                
-                <div>
-                  <h4 className="text-lg font-medium text-indigo-400 mb-2">Benefits</h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li>Receive notifications about new messages</li>
-                    <li>Send timezone-aware meeting invitations</li>
-                    <li>Share timezone comparisons with team members</li>
-                    <li>Coordinate across distributed teams more effectively</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            {/* Video Conferencing */}
-            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold">Video Conferencing</h3>
-              </div>
-              
-              <div className="space-y-4 ml-2">
-                <div>
-                  <h4 className="text-lg font-medium text-purple-400 mb-2">Supported Services</h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li><span className="font-medium">Zoom:</span> Generate and manage Zoom meeting links</li>
-                    <li><span className="font-medium">Google Meet:</span> Create Google Meet sessions</li>
-                    <li><span className="font-medium">Microsoft Teams:</span> Schedule Teams meetings</li>
-                    <li><span className="font-medium">Webex:</span> Connect with Cisco Webex</li>
-                  </ul>
-                </div>
-                
-                <div>
-                  <h4 className="text-lg font-medium text-purple-400 mb-2">How to Generate Meeting Links</h4>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-300 ml-4">
-                    <li>Connect your preferred video service in the Integration Controls panel</li>
-                    <li>Select the service from the dropdown in the Video Meetings section</li>
-                    <li>Click &quot;Generate Link&quot; to create a new meeting</li>
-                    <li>The link will be created and can be copied or shared directly</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-            
-            {/* HR & Enterprise Systems */}
-            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold">HR & Enterprise Systems</h3>
-              </div>
-              
-              <div className="space-y-4 ml-2">
-                <div>
-                  <h4 className="text-lg font-medium text-green-400 mb-2">Available Integrations</h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li><span className="font-medium">Company Holidays:</span> Sync with your organization&apos;s holiday calendar</li>
-                    <li><span className="font-medium">PTO System:</span> View team members&apos; time-off schedules</li>
-                  </ul>
-                </div>
-                
-                <div>
-                  <h4 className="text-lg font-medium text-green-400 mb-2">Benefits</h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li>Avoid scheduling meetings during company holidays</li>
-                    <li>Respect team members&apos; time off when planning</li>
-                    <li>Improve work-life balance across global teams</li>
-                    <li>Enhance scheduling efficiency with awareness of availability</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            {/* Command Center */}
-            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold">Command Center</h3>
-              </div>
-              
-              <div className="space-y-4 ml-2">
-                <div>
-                  <h4 className="text-lg font-medium text-yellow-400 mb-2">Available Commands</h4>
-                  <div className="bg-gray-800 p-3 rounded-md font-mono text-sm text-gray-300 mb-3">
-                    <p><span className="text-green-400">help</span> - Show available commands</p>
-                    <p><span className="text-green-400">status</span> - Show integration status</p>
-                    <p><span className="text-green-400">schedule [person] [duration]</span> - Schedule a meeting</p>
-                    <p><span className="text-green-400">notify [service] [message]</span> - Send a notification</p>
-                    <p><span className="text-green-400">sync [service]</span> - Sync a specific service</p>
-                    <p><span className="text-green-400">clear</span> - Clear command history</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="text-lg font-medium text-yellow-400 mb-2">Tips for Using the Command Center</h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li>Use the Command Center for quick actions without navigating through the UI</li>
-                    <li>Type &quot;help&quot; to see all available commands at any time</li>
-                    <li>Commands can be used to interact with all connected services</li>
-                    <li>Command history is preserved during your session</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            {/* Integration Analytics */}
-            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold">Integration Analytics</h3>
-              </div>
-              
-              <div className="space-y-4 ml-2">
-                <div>
-                  <h4 className="text-lg font-medium text-red-400 mb-2">Available Metrics</h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li><span className="font-medium">Connection Status:</span> Overview of all connected services</li>
-                    <li><span className="font-medium">Sync Health:</span> Status of data synchronization</li>
-                    <li><span className="font-medium">Usage Metrics:</span> Statistics on meetings scheduled, notifications sent, and commands executed</li>
-                    <li><span className="font-medium">Timezone Coverage:</span> Analysis of your team&apos;s global distribution</li>
-                  </ul>
-                </div>
-                
-                <div>
-                  <h4 className="text-lg font-medium text-red-400 mb-2">Benefits of Analytics</h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-300 ml-4">
-                    <li>Identify potential issues with integrations before they affect productivity</li>
-                    <li>Understand your team&apos;s global distribution and optimize meeting times</li>
-                    <li>Track usage patterns to improve workflow efficiency</li>
-                    <li>Make data-driven decisions about team scheduling and communication</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            {/* Best Practices */}
-            <div className="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold">Best Practices</h3>
-              </div>
-              
-              <div className="space-y-4 ml-2">
-                <div>
-                  <h4 className="text-lg font-medium text-cyan-400 mb-2">Getting the Most from Integrations</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
-                    <li>Connect all relevant services for a comprehensive productivity ecosystem</li>
-                    <li>Use the Command Center for quick actions across multiple services</li>
-                    <li>Regularly check Integration Analytics to identify and resolve sync issues</li>
-                    <li>Combine calendar integrations with video conferencing to streamline meeting creation</li>
-                    <li>Leverage HR system integrations to respect team members&apos; time off and holidays</li>
-                  </ul>
-                </div>
-                
-                <div>
-                  <h4 className="text-lg font-medium text-cyan-400 mb-2">Troubleshooting Tips</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
-                    <li>If a service shows as disconnected, try reconnecting through the Integration Controls panel</li>
-                    <li>For calendar sync issues, use the &quot;sync&quot; command in the Command Center</li>
-                    <li>Clear browser cache and cookies if authentication problems persist</li>
-                    <li>Check the Sync Health section in Integration Analytics for specific service issues</li>
-                    <li>Ensure you&apos;ve granted all necessary permissions during the connection process</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* AI Scheduler Guide */}
-        <section className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
-          <h2 className="text-2xl font-semibold mb-4">AI Scheduler Guide</h2>
-          
-          <div className="space-y-6">
-            {/* What is AI Scheduler? */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">What is AI Scheduler?</h3>
-              <p className="text-gray-300 mb-4">
-                The AI Scheduler is an intelligent meeting scheduling assistant that helps you find optimal meeting times across different timezones. It considers multiple factors including:
-              </p>
-              <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
-                <li>Working hours of all participants</li>
-                <li>Preferred meeting times</li>
-                <li>Focus time blocks</li>
-                <li>Existing meeting patterns</li>
-                <li>Time zone overlaps</li>
-                <li>DST transitions</li>
-              </ul>
-            </div>
-
-            {/* How to Access */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">How to Access the AI Scheduler</h3>
-              <ol className="list-decimal list-inside space-y-2 text-gray-300">
-                <li>Navigate to World Clock 2 or World Clock 3</li>
-                <li>Look for the &quot;AI-Powered Scheduling&quot; section at the top</li>
-                <li>Click the &quot;Show Scheduler&quot; button to expand the interface</li>
-              </ol>
-            </div>
-
-            {/* Setting Up Participants */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Setting Up Participants</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-white font-medium mb-2">Adding Participants</h4>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-300">
-                    <li>Use the timezone dropdown to add participants from different regions</li>
-                    <li>Each participant is automatically assigned default working hours (9 AM - 5 PM in their timezone)</li>
-                    <li>Your preferences are automatically imported from your settings</li>
-                  </ol>
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-2">Participant Settings</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Working Hours: Main availability window</li>
-                    <li>Preferred Times: Optimal meeting hours</li>
-                    <li>Focus Time: Protected time blocks for deep work</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* How the AI Works */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">How the AI Works</h3>
-              <div className="space-y-4 text-gray-300">
-                <p>The AI Scheduler uses a sophisticated algorithm to:</p>
-                <ol className="list-decimal list-inside space-y-2 ml-4">
-                  <li>Analyze timezone overlaps between all participants</li>
-                  <li>Calculate optimal meeting slots based on:
-                    <ul className="list-disc list-inside ml-6 mt-2">
-                      <li>Common working hours</li>
-                      <li>Preferred meeting times</li>
-                      <li>Historical meeting patterns</li>
-                      <li>Break requirements between meetings</li>
-                    </ul>
-                  </li>
-                  <li>Score potential time slots based on:
-                    <ul className="list-disc list-inside ml-6 mt-2">
-                      <li>Number of participants in their working hours</li>
-                      <li>Alignment with preferred meeting times</li>
-                      <li>Distance from focus time blocks</li>
-                      <li>Meeting frequency patterns</li>
-                    </ul>
-                  </li>
-                </ol>
-              </div>
-            </div>
-
-            {/* Using the Scheduler */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Using the Scheduler</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-white font-medium mb-2">Finding Optimal Times</h4>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-300">
-                    <li>Add all meeting participants using the timezone selector</li>
-                    <li>The AI will automatically highlight optimal meeting slots</li>
-                    <li>Click on a suggested time to see it highlighted across all timezones</li>
-                    <li>Green slots indicate optimal times that work for all participants</li>
-                    <li>Yellow slots indicate times that work but may not be ideal for some participants</li>
-                    <li>Red slots indicate times that conflict with working hours or focus time</li>
-                  </ol>
-                </div>
-                <div className="mt-4">
-                  <h4 className="text-white font-medium mb-2">Advanced Features</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Hover over time slots to see detailed compatibility information</li>
-                    <li>Use the duration selector to find slots for longer or shorter meetings</li>
-                    <li>Check DST indicators to avoid scheduling during timezone transitions</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Best Practices */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Best Practices</h3>
-              <ul className="list-disc list-inside space-y-2 text-gray-300">
-                <li>Keep your working hours and preferences up to date in Settings</li>
-                <li>Consider adding buffer time before and after meetings across timezones</li>
-                <li>The AI&apos;s suggestions as a starting point, but always verify with participants</li>
-                <li>Pay attention to DST changes when scheduling meetings weeks in advance</li>
-                <li>Use the analytics features to understand team meeting patterns and optimize scheduling</li>
-              </ul>
-            </div>
-
-            {/* Troubleshooting */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Troubleshooting</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-white font-medium mb-2">Common Issues</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>No suitable slots found: Try adjusting the meeting duration or date range</li>
-                    <li>Incorrect working hours: Verify participant settings in their local timezone</li>
-                    <li>DST conflicts: Check for timezone transitions during the selected period</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-2">Tips for Better Results</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Start with shorter meeting durations to find more available slots</li>
-                    <li>Consider splitting long meetings into multiple shorter sessions</li>
-                    <li>Use the analytics dashboard to identify optimal meeting patterns</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Global Workforce Analytics Guide */}
-        <section className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
-          <h2 className="text-2xl font-semibold mb-4">Global Workforce Analytics Guide</h2>
-          
-          <div className="space-y-6">
-            {/* Overview */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Understanding Global Workforce Analytics</h3>
-              <p className="text-gray-300 mb-4">
-                Global Workforce Analytics is a powerful feature that transforms timezone data into actionable insights for better team coordination and efficiency. It helps you:
-              </p>
-              <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
-                <li>Visualize team productivity patterns across timezones</li>
-                <li>Identify optimal collaboration windows</li>
-                <li>Track project completion improvements</li>
-                <li>Monitor collaboration efficiency</li>
-                <li>Receive AI-driven recommendations for team optimization</li>
-              </ul>
-            </div>
-
-            {/* Key Features */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Key Features</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-white font-medium mb-2">Productivity Heat Map</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>24-hour visualization of team activity levels</li>
-                    <li>Color intensity indicates productivity levels</li>
-                    <li>Hover over time blocks to see detailed metrics</li>
-                    <li>UTC-based timeline for global consistency</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-2">Work Pattern Metrics</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Project completion improvement tracking</li>
-                    <li>Collaboration efficiency scores</li>
-                    <li>Team overlap analysis</li>
-                    <li>Historical trend visualization</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-2">AI Recommendations</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Smart suggestions for schedule optimization</li>
-                    <li>Team coverage gap identification</li>
-                    <li>Workflow improvement recommendations</li>
-                    <li>Automated pattern recognition</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Using Analytics */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Using Analytics Dashboard</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-white font-medium mb-2">Accessing Analytics</h4>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-300">
-                    <li>Navigate to World Clock 3</li>
-                    <li>Find the Analytics Dashboard at the top of the page</li>
-                    <li>Toggle between different metric views using the dashboard controls</li>
-                  </ol>
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-2">Reading the Heat Map</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Darker colors indicate higher activity levels</li>
-                    <li>Each column represents one hour in UTC</li>
-                    <li>Hover for detailed activity percentages</li>
-                    <li>Look for patterns in team activity distribution</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Interpreting Data */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Interpreting Analytics Data</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-white font-medium mb-2">Productivity Metrics</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Project Completion Rate: Measures improvement in task completion times</li>
-                    <li>Collaboration Score: Indicates effectiveness of team interaction</li>
-                    <li>Activity Levels: Shows team engagement across different hours</li>
-                    <li>Coverage Analysis: Identifies gaps in team availability</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-2">Understanding Recommendations</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Warning indicators highlight immediate attention areas</li>
-                    <li>Insight badges suggest optimization opportunities</li>
-                    <li>Trend arrows show metric movement direction</li>
-                    <li>Action items provide specific steps for improvement</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Optimization Strategies */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Optimization Strategies</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-white font-medium mb-2">Team Coverage</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Identify and fill coverage gaps across timezones</li>
-                    <li>Adjust team schedules based on activity patterns</li>
-                    <li>Optimize handoff times between regions</li>
-                    <li>Balance workload across different time zones</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-2">Collaboration Windows</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Schedule key meetings during high-overlap periods</li>
-                    <li>Plan async work during low-overlap times</li>
-                    <li>Use analytics to find optimal collaboration times</li>
-                    <li>Respect team members&apos; peak productivity hours</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Best Practices */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Analytics Best Practices</h3>
-              <ul className="list-disc list-inside space-y-2 text-gray-300">
-                <li>Regularly review analytics data to identify trends</li>
-                <li>Act on AI recommendations promptly</li>
-                <li>Share insights with team leads for better coordination</li>
-                <li>Use data to make informed scheduling decisions</li>
-                <li>Monitor the impact of schedule changes on productivity</li>
-                <li>Balance efficiency with team well-being</li>
-              </ul>
-            </div>
-
-            {/* Troubleshooting */}
-            <div className="bg-gray-900/50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">Troubleshooting Analytics</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-white font-medium mb-2">Common Issues</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Incomplete data: Ensure all team members are properly tracked</li>
-                    <li>Misleading patterns: Account for holidays and local events</li>
-                    <li>Metric fluctuations: Consider seasonal variations</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-2">Data Accuracy Tips</h4>
-                  <ul className="list-disc list-inside space-y-2 text-gray-300">
-                    <li>Regularly update team member timezone information</li>
-                    <li>Validate working hours and schedule changes</li>
-                    <li>Consider DST changes in long-term analysis</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Tips & Tricks */}
         <section className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
           <h2 className="text-2xl font-semibold mb-4">Tips & Tricks</h2>
@@ -649,7 +104,177 @@ export default function GuidesPage() {
             </div>
           </div>
         </section>
+
+        {/* Personal Notes Section */}
+        <section className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
+          <div className="flex flex-wrap -mx-2">
+            {/* First column with client notes */}
+            <div className="w-full md:w-1/5 px-2 mb-4">
+              <div className="bg-gray-900/30 border border-gray-700 rounded-lg h-full p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center">
+                    <span className="text-yellow-400 mr-2">★</span>
+                    <h3 className="text-lg font-medium">Personal Notes</h3>
+                  </div>
+                  <span className={`transform transition-transform ${expandedNote === '1' ? 'rotate-0' : 'rotate-180'}`}>▲</span>
+                </div>
+
+                <div className="mt-4">
+                  {clients.map(client => (
+                    <div key={client.id} className="mb-6">
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-lg">{client.name}</h4>
+                        <div>
+                          <button className="text-blue-400 text-sm mr-2">Edit</button>
+                          <button 
+                            className="text-red-400 text-sm"
+                            onClick={() => handleDeleteClient(client.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-gray-300 text-sm">
+                        {client.kidsSports.length > 0 && (
+                          <div className="flex items-start">
+                            <span className="text-yellow-400 mr-2">🏅</span>
+                            <span>Kids' Sports: {client.kidsSports.join(', ')}</span>
+                          </div>
+                        )}
+                        {client.hobbies.length > 0 && (
+                          <div className="flex items-start">
+                            <span className="text-pink-400 mr-2">🎭</span>
+                            <span>Hobbies: {client.hobbies.join(', ')}</span>
+                          </div>
+                        )}
+                        {client.placesVisited.length > 0 && (
+                          <div className="flex items-start">
+                            <span className="text-cyan-400 mr-2">🌎</span>
+                            <span>Places Visited: {client.placesVisited.join(', ')}</span>
+                          </div>
+                        )}
+                        {client.lastMeeting && (
+                          <div className="flex items-start">
+                            <span className="text-gray-400 mr-2">📝</span>
+                            <span>Last Meeting: {client.lastMeeting}</span>
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-500 mt-1">
+                          Last updated: {client.lastUpdated}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center justify-center mt-4"
+                    onClick={() => setShowModal(true)}
+                  >
+                    <span className="mr-2">+</span>
+                    Add Client
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Remaining columns (empty) */}
+            {[1, 2, 3, 4].map((colIndex) => (
+              <div key={colIndex} className="w-full md:w-1/5 px-2 mb-4">
+                <div className="bg-gray-900/30 border border-gray-700 rounded-lg h-full p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center">
+                      <span className="text-yellow-400 mr-2">★</span>
+                      <h3 className="text-lg font-medium">Personal Notes</h3>
+                    </div>
+                    <span className="transform rotate-180">▲</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
+
+      {/* Add New Client Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Add New Client</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block mb-1">Client Name *</label>
+                <input
+                  type="text"
+                  className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white"
+                  value={newClient.name}
+                  onChange={(e) => setNewClient({...newClient, name: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="block mb-1">Kids' Sports (comma-separated)</label>
+                <input
+                  type="text"
+                  className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white"
+                  placeholder="Basketball, Soccer, Tennis"
+                  value={newClient.kidsSports}
+                  onChange={(e) => setNewClient({...newClient, kidsSports: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="block mb-1">Hobbies (comma-separated)</label>
+                <input
+                  type="text"
+                  className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white"
+                  placeholder="Photography, Travel, Reading"
+                  value={newClient.hobbies}
+                  onChange={(e) => setNewClient({...newClient, hobbies: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="block mb-1">Places Visited (comma-separated)</label>
+                <input
+                  type="text"
+                  className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white"
+                  placeholder="France, Japan, Australia"
+                  value={newClient.placesVisited}
+                  onChange={(e) => setNewClient({...newClient, placesVisited: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="block mb-1">Last Meeting Notes</label>
+                <textarea
+                  className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white"
+                  rows={3}
+                  placeholder="Important details from your last meeting"
+                  value={newClient.lastMeeting}
+                  onChange={(e) => setNewClient({...newClient, lastMeeting: e.target.value})}
+                ></textarea>
+              </div>
+            </div>
+            
+            <div className="flex justify-end mt-6 space-x-2">
+              <button 
+                className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
+                onClick={handleAddClient}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

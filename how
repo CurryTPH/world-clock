@@ -1,5 +1,0 @@
-[33mcommit c2a281a8056f938a75e91c0c89d19883b1e7d879[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdeploy-to-vercel[m[33m, [m[1;31morigin/deploy-to-vercel[m[33m)[m
-Author: Curry <currytph@gmail.com>
-Date:   Mon Mar 10 23:47:34 2025 -0500
-
-    fix: exclude deleted another-tab directory from TS compilation

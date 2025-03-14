@@ -3,47 +3,48 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import Sidebar from "./components/Sidebar";
-import { IntegrationsProvider } from './contexts/IntegrationsContext';
+import { AuthProvider } from './auth/AuthContext';
+import UserMenu from "./components/UserMenu";
+import { ViewProvider } from './contexts/ViewContext';
+import { DashboardProvider } from './contexts/DashboardContext';
 
 export const metadata = {
   title: 'World Clock Application',
   description: 'Manage time across different timezones',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+// Use Geist fonts
+const fontClass = `${GeistSans.variable} ${GeistMono.variable} font-sans`;
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" className={fontClass} suppressHydrationWarning>
       <head>
-        <link
-          rel="preload"
-          href="https://cdn.jsdelivr.net/npm/react-select@5.7.0/dist/react-select.min.css"
-          as="style"
-          crossOrigin="anonymous"
-        />
-        <link 
-          rel="stylesheet" 
-          href="https://cdn.jsdelivr.net/npm/react-select@5.7.0/dist/react-select.min.css"
-          crossOrigin="anonymous" 
-        />
+        {/* Ensure no duplicate scripts */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
-      <body className="bg-background text-foreground antialiased">
-        <IntegrationsProvider>
-          <div className="flex h-screen">
-            <Sidebar />
-            <main className="flex-1 overflow-auto">
-              <header className="bg-gray-800/80 backdrop-blur supports-[backdrop-filter]:bg-gray-800/80 p-4 flex justify-between items-center sticky top-0 z-10 shadow-lg border-b border-gray-700/50">
-                <div>
-                  <h1 className="text-xl font-semibold">World Clock Application</h1>
-                  <p className="text-gray-400 text-sm">Manage time across different timezones</p>
-                </div>
-              </header>
-              <div className="container mx-auto px-4 py-6">
-                {children}
+      <body className="bg-gray-900 text-gray-100">
+        {/* Wrap all providers in a single component tree */}
+        <AuthProvider>
+          <ViewProvider>
+            <DashboardProvider>
+              <div className="flex w-full h-screen">
+                <Sidebar />
+                <main className="flex-1 overflow-auto relative">
+                  <div className="absolute top-4 right-4 z-10">
+                    <UserMenu />
+                  </div>
+                  {children}
+                  <SpeedInsights />
+                </main>
               </div>
-            </main>
-          </div>
-        </IntegrationsProvider>
-        <SpeedInsights />
+            </DashboardProvider>
+          </ViewProvider>
+        </AuthProvider>
       </body>
     </html>
   );
